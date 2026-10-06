@@ -5,7 +5,7 @@ import { deploymentIdentity } from './deployment-identity.mjs';
 const root = resolve(import.meta.dirname, '..');
 const output = resolve(root, 'public', 'data.json');
 const config = JSON.parse(await readFile(resolve(root, 'aleph.config.json'), 'utf8'));
-if (![1, 2, 3, 4].includes(config.step)) {
+if (![1, 2, 3, 4, 5].includes(config.step)) {
   throw new Error('지원하지 않는 단계입니다. 공개 자료 빌드와 API 설정을 확인하세요.');
 }
 // 원본 JSON을 복사하지 않고 항상 메모 본문 없는 공개 결과만 생성합니다.

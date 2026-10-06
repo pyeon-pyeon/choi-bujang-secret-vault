@@ -1,6 +1,18 @@
 # BYTE BACK 방어전 시작 틀 R5
 
-## 현재 작업: 4단계 저장점 (DB 적용·새 배포 미확인)
+## 현재 작업: 5단계 저장점 (새 배포·실제 A CRUD 미확인)
+
+브라우저의 메모 CRUD는 Vercel /api/notes와 /api/notes/:id만 호출합니다. Supabase SDK의 Auth 로그인·로그아웃은 유지하며 자료 테이블 직접 호출은 없습니다. 서버의 토큰 검증·본인 소유자 검사·서버 전용 환경변수는 변경하지 않았습니다.
+
+supabase/step5-revoke-direct-access.sql은 learning_notes의 PUBLIC·anon·authenticated 테이블/열 권한만 회수하고 적용 전후 명시·실제 권한을 조회합니다. 기존 service_role 권한, RLS 정책, DB 행, 다른 테이블은 보존합니다. 사용자가 실행한 after 결과에서 anon·authenticated의 열 SELECT·INSERT·UPDATE·REFERENCES가 false임을 확인했습니다. 테이블 DELETE 및 service_role CRUD 결과와 실제 A CRUD는 아직 미확인입니다.
+
+originalApiUrl은 쿼리 없는 https://bggmpuwdrkrqqglduvlp.supabase.co/rest/v1/learning_notes 입니다. 단계는 5이며 발급자·허용 메서드/경로는 기존 구현을 유지합니다. 원본 직접 요청은 심판의 anon 키로 확인합니다. anon 키를 제공받지 않아 그 직접 점검은 미실행이며 publishable key나 authenticated 토큰으로 대체하지 않았습니다.
+
+다시 실행: npm run build -- --local. 실제 배포 후 A로 로그인해 본인 조회·추가·수정·삭제를 확인해야 합니다. 비로그인/잘못된 토큰은 401, 상대 단건은 404로 거부돼야 하며 원본 Data API는 anon 역할로 자료 접근을 허용하지 않아야 합니다. 첫 화면 nosniff 보안 헤더 설정도 유지합니다. 과거 공개 커밋·배포가 남아 있는 한 과거 노출 해소를 주장하지 않습니다.
+
+## 4단계 기록
+
+### 4단계 저장점 기록
 
 자료 API는 기존 토큰 검증을 유지하고 검증된 ID와 owner_id를 대조합니다. 목록은 본인 행, 단건 GET·PUT·DELETE는 id와 owner_id를 함께 조건으로 사용합니다. 추가는 서버 ID로 소유자를 저장하고 수정은 title/body만 허용하며 기존·새 소유자를 본인으로 제한합니다. 상대 또는 없는 행은 자료 없이 404, 잘못된 수정 필드는 400, 인증 실패는 401입니다.
 
