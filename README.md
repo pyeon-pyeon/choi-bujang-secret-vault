@@ -1,26 +1,23 @@
 # BYTE BACK 방어전 시작 틀 R5
 
-## 현재 작업: 2단계 자료 이전 (로컬 구현, DB 적용·배포 미확인)
+## 현재 작업: 2단계 자료 이전
 
-화면은 `/api/notes`의 Vercel 서버 함수를 통해 `public.learning_notes`의 가상 메모 네 건을 읽습니다. 루트와 공개 `data.json`은 빈 메모 목록이며, 빌드는 메모 본문을 복사하지 않습니다. 아래 1단계 설명은 시작 당시의 동작 기록입니다.
+사용자가 SQL 실행과 서버 환경변수 등록을 완료했다고 알려 주었습니다. 실제 API 응답은 새 배포 후 별도 확인하며, 키 값은 확인하거나 보관하지 않습니다.
+
+화면은 `/api/notes`의 Vercel 서버 함수를 통해 `public.learning_notes`의 가상 메모 네 건을 읽습니다. 루트 `data.json`과 공개 `data.json`은 빈 메모 목록이며, 빌드는 메모 본문을 복사하지 않습니다. 아래 1단계 설명은 시작 당시의 동작 기록입니다.
 
 **남은 약점:** `/api/notes`는 아직 공개 주소입니다. 로그인·소유자 검증이 없어 비로그인 방문자도 가상 메모를 읽을 수 있습니다. DB의 RLS와 브라우저 역할 권한 회수만으로 이 서버 함수의 공개 접근이 막히지는 않습니다.
 
-Supabase SQL Editor에서 `supabase/step2-learning-notes.sql`을 새 테이블에 실행하세요. `owner_id uuid`는 NULL 허용이며 `auth.users` 외래키는 없습니다. RLS는 켜고 `PUBLIC`, `anon`, `authenticated` 권한을 회수하며 서버 역할에만 SELECT를 허용합니다. 이전 세 건 SQL을 이미 실행했다면 테이블을 삭제하지 말고 아래 추가 SQL만 실행하세요.
-
-```sql
-BEGIN;
-GRANT SELECT ON TABLE public.learning_notes TO service_role;
-INSERT INTO public.learning_notes (id, owner_id, title, content)
-VALUES ('00000000-0000-4000-8000-000000000004'::uuid, NULL, '훈련 행정 자료', '실습용 가상 행정 기록')
-ON CONFLICT (id) DO NOTHING;
-COMMIT;
-```
+Supabase SQL Editor에서 가상 메모 네 건을 등록한 상태를 유지하세요. `supabase/step2-learning-notes.sql`은 테이블 구조와 권한만 담고 본문은 포함하지 않습니다. 새 DB에서는 이 파일만 실행해도 메모가 생기지 않습니다. 기존 DB 행은 삭제하거나 수정하지 않습니다. `owner_id uuid`는 NULL 허용이며 외래키가 없습니다.
 
 Vercel 프로젝트 Settings → Environment Variables에서 `SUPABASE_URL`과 서버 전용 `SUPABASE_SECRET_KEY`를 직접 등록하고 Redeploy하세요. 실제 값은 Git·브라우저 파일·답변에 넣지 않습니다. 함수는 DB 오류 세부 정보를 응답하거나 로그에 남기지 않습니다. 저장점 설정과 다음 빌드의 배포 식별 단계는 2입니다. 실제 배포·DB 적용 완료나 심판 통과를 의미하지 않습니다.
 
 로컬 정적 빌드: `npm run build -- --local`. 이 명령은 서버 함수를 실행하지 않습니다. 실제 배포 후 `/`에서 네 건이 표시되고 `/api/notes` GET은 200, POST는 405, DB 설정 누락/실패는 503이어야 합니다. `/data.json`은 빈 목록이고 DB의 anon·authenticated 직접 조회는 거부되어야 합니다.
 
+
+## 2단계 심판 오류 보완 (로컬 수정, 배포 미확인)
+
+공개 `/data.json`은 `notes: []`만 생성하고, 2단계 `/aleph.json`에는 1단계 확인 표시를 넣지 않습니다. 화면은 `/api/notes`를 호출하며 DB가 빈 경우 오류 안내를 표시합니다. 새 코드가 배포되고 DB·환경변수 설정이 완료돼야 카드 네 건이 표시됩니다. 현재 로컬 수정만으로 실제 심판 오류가 해결됐다고 판단하지 않습니다.
 
 ## 가상 메모 문장 공개 여부 확인 절차
 
@@ -31,17 +28,18 @@ Vercel 프로젝트 Settings → Environment Variables에서 `SUPABASE_URL`과 �
 기존 작업 폴더를 덮어쓰지 않도록 별도 임시 복제본에서 검색합니다. 아래는 Bash/Git Bash 명령입니다. `git grep -l`은 본문 대신 일치한 파일 이름만 출력하며, 종료 코드 1은 검색 결과 없음입니다.
 
 ```bash
+note_prefix='실습용 가상'
 review_dir=$(mktemp -d)
 git clone --depth 1 --branch main https://github.com/pyeon-pyeon/choi-bujang-secret-vault.git "$review_dir/repo"
 git -C "$review_dir/repo" log -1 --format='%H %s'
 git -C "$review_dir/repo" grep -l -F \
-  -e '실습용 가상 과제 기록' \
-  -e '실습용 가상 포트폴리오 기록' \
-  -e '실습용 가상 리추얼 기록' \
-  -e '실습용 가상 행정 기록' HEAD -- .
+  -e "$note_prefix 과제 기록" \
+  -e "$note_prefix 포트폴리오 기록" \
+  -e "$note_prefix 리추얼 기록" \
+  -e "$note_prefix 행정 기록" HEAD -- .
 ```
 
-전체 검색에서 SQL 초기 자료와 이 README가 일치할 수 있습니다. 이를 숨기거나 전체 저장소에 메모가 없다고 보고하지 마세요. `data.json`, `public/`, 브라우저 스크립트에서 일치하면 최신 정적 파일에 메모 본문이 남은 것입니다. **현재 SQL과 README에도 가상 메모 본문이 있으므로 공개 GitHub 최신 파일 전체에서 본문이 제거된 상태는 아닙니다.** DB로 옮긴 것과 공개 저장소에서 없앤 것은 별도 결과입니다.
+전체 검색에서 일치한 파일이 있으면 숨기지 말고 기록하세요. `data.json`, `public/`, 브라우저 스크립트에서 일치하면 최신 정적 파일에 메모 본문이 남은 것입니다. SQL과 README에서 가상 메모 전체 문장을 제거했습니다. 검색어는 조각을 조합해 검색 설명 자체가 전체 문장으로 남지 않도록 합니다. DB로 옮긴 것과 공개 저장소에서 없앤 것은 별도 결과입니다.
 
 ### 2. 실제 배포 응답 검색
 
@@ -59,10 +57,10 @@ for path in / /data.json /aleph.json /api/notes; do
     --write-out "$path HTTP %{http_code}\n" "$app_url$path"
 done
 rg -l -F \
-  -e '실습용 가상 과제 기록' \
-  -e '실습용 가상 포트폴리오 기록' \
-  -e '실습용 가상 리추얼 기록' \
-  -e '실습용 가상 행정 기록' "$deploy_review_dir"
+  -e "$note_prefix 과제 기록" \
+  -e "$note_prefix 포트폴리오 기록" \
+  -e "$note_prefix 리추얼 기록" \
+  -e "$note_prefix 행정 기록" "$deploy_review_dir"
 ```
 
 HTTP 200뿐 아니라 JSON을 파싱해서 확인하세요. JSON이 Unicode 이스케이프로 인코딩되면 단순 문자열 검색이 일치하지 않을 수 있습니다.
@@ -73,7 +71,7 @@ HTTP 200뿐 아니라 JSON을 파싱해서 확인하세요. JSON이 Unicode 이�
 
 **옛 공개 커밋 또는 옛 공개 배포가 남아 있는 한 과거 노출이 해소됐다고 쓰지 않습니다.** GitHub History에서 이전 `data.json`과 `public/data.json`을 확인하고, Vercel Deployments에서 기존 개별 배포 주소의 `/data.json`도 비로그인으로 확인하세요. 최신 도메인이 새 배포를 가리키는 것만으로 이전 배포가 사라지지는 않습니다. 이 점검은 기록·배포 삭제나 Git 이력 재작성을 수행하지 않습니다.
 
-결과는 예를 들어 “최신 정적 JSON에는 메모 없음 / 최신 GitHub SQL·README에는 가상 본문 남음 / 공개 API에서는 읽기 가능 / 과거 커밋·배포 노출은 별도 잔존”처럼 범위별로 기록하세요. 복제·캐시·다운로드된 과거 자료가 회수됐다고 단정하지 않습니다. 이 문서의 절차 추가 자체는 실제 점검 실행이나 방어 성공을 의미하지 않습니다.
+결과는 예를 들어 “최신 정적 JSON에는 메모 없음 / 최신 GitHub 전체 문장 검색 결과를 별도 기록 / 공개 API에서는 읽기 가능 / 과거 커밋·배포 노출은 별도 잔존”처럼 범위별로 기록하세요. 복제·캐시·다운로드된 과거 자료가 회수됐다고 단정하지 않습니다. 이 문서의 절차 추가 자체는 실제 점검 실행이나 방어 성공을 의미하지 않습니다.
 
 ## 1단계 시작 당시 안내
 

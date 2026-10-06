@@ -10,7 +10,7 @@ if (![1, 2].includes(config.step)) {
 }
 // 원본 JSON을 복사하지 않고 항상 메모 본문 없는 공개 결과만 생성합니다.
 await mkdir(resolve(root, 'public'), { recursive: true });
-await writeFile(output, `${JSON.stringify({ sampleMarker: config.sampleMarker, notes: [] }, null, 2)}\n`, 'utf8');
+await writeFile(output, `${JSON.stringify({ notes: [] }, null, 2)}\n`, 'utf8');
 console.log('메모 본문 없는 public/data.json을 생성했습니다.');
 if (!process.argv.includes('--local')) {
   const identity = deploymentIdentity(process.env, config);
