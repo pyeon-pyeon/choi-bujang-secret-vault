@@ -1,11 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { createLoginVerifier } from '../src/verify-login.mjs';
 
-// 2단계 학습용 공개 함수. 로그인/소유자 검증은 아직 구현하지 않았습니다.
+const config = JSON.parse(await readFile(new URL('../aleph.config.json', import.meta.url), 'utf8'));
+let verifyLogin;
+
+// 토큰의 신원을 검증합니다. 자료 소유자 접근 통제는 다음 단계입니다.
 export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store');
-  if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET');
+  const id = request.query?.id;
+  const single = id !== undefined;
+  const methods = single ? ['GET', 'PUT', 'DELETE'] : ['GET', 'POST'];
+  if (!methods.includes(request.method)) {
+    response.setHeader('Allow', methods.join(', '));
     return response.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
+  }
+  const authorization = request.headers?.authorization;
+  if (typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) {
+    return response.status(401).json({ error: 'LOGIN_REQUIRED' });
   }
   const url = process.env.SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
@@ -13,17 +26,59 @@ export default async function handler(request, response) {
     return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
   }
   try {
+    if (new URL(url).origin !== new URL(config.identityProvider.issuer).origin) {
+      return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
+    }
+    verifyLogin ??= createLoginVerifier({ config, supabaseSecretKey: secret });
+    const identity = await verifyLogin(authorization);
+    if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
+    // userId/role 등 요청 값은 읽지 않습니다. 검증된 A/B 신원 모두 유지합니다.
     const client = createClient(url, secret, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
-    const { data, error } = await client.from('learning_notes')
-      .select('title,content').order('id', { ascending: true }).limit(4);
-    if (error || !Array.isArray(data)) {
-      return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (single && (typeof id !== 'string' || !uuid.test(id))) {
+      return response.status(400).json({ error: 'INVALID_ID' });
     }
-    return response.status(200).json({
-      notes: data.map(({ title, content }) => ({ title, content })),
-    });
+    const table = () => client.from('learning_notes');
+    const present = row => ({ id: row.id, title: row.title, body: row.content });
+    if (request.method === 'GET') {
+      const result = single
+        ? await table().select('id,title,content').eq('id', id).maybeSingle()
+        : await table().select('id,title,content').eq('owner_id', identity.userId).order('created_at', { ascending: true });
+      if (result.error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
+      if (single && !result.data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+      return response.status(200).json(single ? present(result.data) : result.data.map(present));
+    }
+    if (request.method === 'DELETE') {
+      // 3단계 한계: 단건 경로는 로그인만 검사하며 소유자를 비교하지 않습니다.
+      const { data, error } = await table().delete().eq('id', id).select('id').maybeSingle();
+      if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
+      if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+      return response.status(200).json({ id: data.id });
+    }
+    let body = request.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch { return response.status(400).json({ error: 'INVALID_NOTE' }); }
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)
+        || typeof body.title !== 'string' || !body.title.trim() || body.title.length > 200
+        || typeof body.body !== 'string' || !body.body.trim() || body.body.length > 10000) {
+      return response.status(400).json({ error: 'INVALID_NOTE' });
+    }
+    if (request.method === 'POST') {
+      const newId = body.id === undefined ? randomUUID() : body.id;
+      if (typeof newId !== 'string' || !uuid.test(newId)) return response.status(400).json({ error: 'INVALID_ID' });
+      const { error } = await table().insert({ id: newId, title: body.title, content: body.body, owner_id: identity.userId });
+      if (error) return response.status(error.code === '23505' ? 409 : 503).json({ error: error.code === '23505' ? 'ID_EXISTS' : 'NOTES_UNAVAILABLE' });
+      return response.status(201).json({ id: newId });
+    }
+    const { data, error } = await table().update({ title: body.title, content: body.body })
+      .eq('id', id).select('id,title,content').maybeSingle();
+    if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
+    if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+    return response.status(200).json(present(data));
+
   } catch {
     // SDK 오류에는 연결 정보가 들어갈 수 있어 응답/로그에 전달하지 않습니다.
     return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });

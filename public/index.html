@@ -16,6 +16,12 @@
     li { border: 1px solid #51667c; border-radius: 14px; padding: 17px 19px; background: #1a2a3d; }
     strong { display: block; font-size: 18px; margin-bottom: 5px; }
     li span { color: #bfd0e5; }
+    .auth { padding: 20px; border: 1px solid #51667c; border-radius: 14px; }
+    .auth label { display: block; margin-top: 12px; }
+    .auth input { box-sizing: border-box; display: block; width: 100%; margin: 6px 0; padding: 12px; background: #101a28; color: #ecf4ff; border: 1px solid #51667c; border-radius: 8px; }
+    .auth button { margin-top: 12px; padding: 10px 18px; border: 0; border-radius: 8px; background: #8ad8df; color: #101a28; cursor: pointer; }
+    .auth button:disabled { opacity: .5; cursor: wait; }
+    #auth-message { white-space: pre-wrap; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
@@ -23,31 +29,32 @@
     <div class="eyebrow">BYTE BACK · 2단계 자료 이전</div>
     <h1>점령된 자료실</h1>
     <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
-    <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 자료는 DB로 옮겼지만 서버 함수는 아직 공개 주소입니다. 다음 단계에서 접근을 막아 주세요.</div>
-    <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
+    <div class="notice">자료를 읽으려면 로그인해야 합니다. 로그인은 신원 확인이며, 계정별 자료 접근 통제는 다음 단계에서 추가합니다.</div>
+    <section class="auth" aria-labelledby="auth-heading">
+      <h2 id="auth-heading">계정 로그인</h2>
+      <p id="auth-status" role="status">로그인 상태 확인 중입니다.</p>
+      <form id="login-form">
+        <label for="login-email">이메일</label>
+        <input id="login-email" name="email" type="email" autocomplete="username" required>
+        <label for="login-password">비밀번호</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        <button id="login-button" type="submit" disabled>로그인</button>
+      </form>
+      <button id="logout-button" type="button" hidden disabled>로그아웃</button>
+      <p id="auth-message" role="status" aria-live="polite"></p>
+    </section>
+    <form id="note-form" class="auth" hidden>
+      <h2>가상 메모 작성</h2>
+      <label for="note-title">제목</label>
+      <input id="note-title" maxlength="200" required>
+      <label for="note-body">내용</label>
+      <textarea id="note-body" maxlength="10000" required></textarea>
+      <button type="submit">추가</button>
+      <p id="note-message" role="status" aria-live="polite"></p>
+    </form>
+    <ul id="notes" aria-live="polite"><li>로그인 후 자료를 불러옵니다.</li></ul>
   </main>
-  <script type="module">
-    const list = document.querySelector('#notes');
-    try {
-      const response = await fetch('/api/notes', { cache: 'no-store' });
-      if (!response.ok) throw new Error('자료를 불러올 수 없습니다.');
-      const data = await response.json();
-      if (!Array.isArray(data.notes)) throw new Error('자료 형식이 맞지 않습니다.');
-      if (data.notes.length === 0) throw new Error('DB에 가상 메모가 없습니다. 자료 등록 상태를 확인하세요.');
-      list.replaceChildren(...data.notes.map(note => {
-        const item = document.createElement('li');
-        const title = document.createElement('strong');
-        const content = document.createElement('span');
-        title.textContent = note.title;
-        content.textContent = note.content;
-        item.append(title, content);
-        return item;
-      }));
-    } catch (error) {
-      const item = document.createElement('li');
-      item.textContent = error.message;
-      list.replaceChildren(item);
-    }
-  </script>
+  <script type="module" src="/auth.js"></script>
+
 </body>
 </html>
