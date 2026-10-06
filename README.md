@@ -1,6 +1,12 @@
 # BYTE BACK 방어전 시작 틀 R5
 
-## 현재 작업: 5단계 저장점 (새 배포·실제 A CRUD 미확인)
+## 현재 작업: 5단계 보완 (새 배포·실제 로그인 미확인)
+
+브라우저에서 Supabase 공개 키와 SDK를 제거했습니다. /api/auth 서버 함수가 공식 SDK로 로그인·사용자 확인·세션 갱신·로그아웃을 수행하고, 토큰은 Secure·HttpOnly·SameSite=Strict 쿠키로만 전달합니다. 브라우저 JSON에는 토큰이나 키가 없습니다. 변경 요청의 쿠키 인증은 고정된 앱 Origin을 확인합니다. 자료 API는 기존 검증 도우미·소유자 검사를 그대로 유지하며 심판 Bearer 요청도 지원합니다.
+
+서버 함수의 공개 키는 SUPABASE_PUBLISHABLE_KEY 환경변수를 우선 읽고 기존 제공된 공개 키를 서버 코드에서만 기본값으로 사용합니다. SUPABASE_SECRET_KEY는 자료 API의 기존 서버 전용 설정을 유지합니다. 배포 /aleph.json에는 allowedRoutes와 originalApiUrl이 포함되고 첫 화면 nosniff 설정도 유지합니다. 배포 후 기존 브라우저 SDK 세션과 별개로 새 화면에서 다시 로그인해야 합니다. 비밀번호·JWT를 직접 생성하거나 로그에 기록하지 않습니다.
+
+## 5단계 저장점 기록
 
 브라우저의 메모 CRUD는 Vercel /api/notes와 /api/notes/:id만 호출합니다. Supabase SDK의 Auth 로그인·로그아웃은 유지하며 자료 테이블 직접 호출은 없습니다. 서버의 토큰 검증·본인 소유자 검사·서버 전용 환경변수는 변경하지 않았습니다.
 

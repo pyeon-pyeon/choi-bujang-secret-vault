@@ -16,7 +16,16 @@ export default async function handler(request, response) {
     response.setHeader('Allow', methods.join(', '));
     return response.status(405).json({ error: 'METHOD_NOT_ALLOWED' });
   }
-  const authorization = request.headers?.authorization;
+  // 명시적 Bearer 요청은 우선 검증합니다. 잘못된 토큰을 쿠키로 대체하지 않습니다.
+  let authorization = request.headers?.authorization;
+  const usingCookie = authorization === undefined;
+  if (usingCookie) {
+    const cookie = (request.headers?.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith('vault_access='));
+    if (cookie) authorization = `Bearer ${cookie.slice('vault_access='.length)}`;
+    if (request.method !== 'GET' && request.headers?.origin !== new URL(config.publicAppUrl).origin) {
+      return response.status(403).json({ error: 'INVALID_ORIGIN' });
+    }
+  }
   if (typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) {
     return response.status(401).json({ error: 'LOGIN_REQUIRED' });
   }

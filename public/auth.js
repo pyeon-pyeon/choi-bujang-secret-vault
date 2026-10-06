@@ -1,6 +1,3 @@
-// Project URL과 publishable key만 공개합니다. 서버 전용 키는 사용하지 않습니다.
-const PROJECT_URL = 'https://bggmpuwdrkrqqglduvlp.supabase.co';
-const PUBLISHABLE_KEY = 'sb_publishable_dPdvN9lFoONAF7STrbWziA_12SYfsrX';
 const form = document.querySelector('#login-form');
 const email = document.querySelector('#login-email');
 const password = document.querySelector('#login-password');
@@ -12,15 +9,14 @@ const message = document.querySelector('#auth-message');
 const list = document.querySelector('#notes');
 let loadVersion = 0;
 let currentSession = null;
-let sdk;
+
 const noteForm = document.querySelector('#note-form');
 const noteMessage = document.querySelector('#note-message');
 async function noteRequest(path, method, body) {
-  const { data, error } = await sdk.auth.getSession();
-  if (error || !data.session?.access_token) throw new Error('다시 로그인하세요.');
+  const state = await authRequest('GET');
+  if (!state.signedIn) { render(null); throw new Error('다시 로그인하세요.'); }
   const response = await fetch(path, {
     method, cache: 'no-store', headers: {
-      Authorization: `Bearer ${data.session.access_token}`,
       ...(body ? { 'Content-Type': 'application/json' } : {}),
     }, ...(body ? { body: JSON.stringify(body) } : {}),
   });
@@ -36,11 +32,11 @@ async function loadNotes(session) {
     item.textContent = text;
     list.replaceChildren(item);
   };
-  if (!session?.access_token) { notice('로그인 후 자료를 불러옵니다.'); return; }
+  if (!session?.signedIn) { notice('로그인 후 자료를 불러옵니다.'); return; }
   notice('자료를 불러오는 중입니다.');
   try {
     const result = await fetch('/api/notes', {
-      cache: 'no-store', headers: { Authorization: `Bearer ${session.access_token}` },
+      cache: 'no-store', credentials: 'same-origin',
     });
     if (version !== loadVersion) return;
     if (!result.ok) throw new Error(result.status === 401 ? '로그인 검증에 실패했습니다. 다시 로그인하세요.' : '자료를 불러올 수 없습니다.');
@@ -83,7 +79,7 @@ let busy = false;
 let signedIn = false;
 function render(session) {
   currentSession = session;
-  signedIn = Boolean(session?.user);
+  signedIn = Boolean(session?.signedIn);
   noteForm.hidden = !signedIn;
   if (!signedIn) { noteForm.reset(); noteMessage.textContent = ''; }
   form.hidden = signedIn;
@@ -106,50 +102,41 @@ function showError(prefix, error) {
   message.textContent = `${prefix}: ${error?.message || '네트워크 연결을 확인하고 다시 시도하세요.'}`;
 }
 
-try {
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.117.2');
-  const supabase = createClient(PROJECT_URL, PUBLISHABLE_KEY);
-  sdk = supabase;
-  // 세션 보관·갱신과 로그인 상태 복원은 SDK에 맡깁니다.
-  supabase.auth.onAuthStateChange((_event, session) => render(session));
-
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (busy || signedIn) return;
-    setBusy(true);
-    message.textContent = '로그인 중입니다.';
-    try {
-      const pending = supabase.auth.signInWithPassword({
-        email: email.value.trim(), password: password.value,
-      });
-      password.value = '';
-      const { data, error } = await pending;
-      if (error) showError('로그인 실패', error);
-      else {
-        render(data.session);
-        message.textContent = '로그인에 성공했습니다.';
-      }
-    } catch (error) { showError('로그인 실패', error); }
-    finally { password.value = ''; setBusy(false); }
+async function authRequest(method, body) {
+  const response = await fetch('/api/auth', {
+    method, credentials: 'same-origin', cache: 'no-store',
+    ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
   });
-
-  logout.addEventListener('click', async () => {
-    if (busy || !signedIn) return;
-    setBusy(true);
-    message.textContent = '로그아웃 중입니다.';
-    try {
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
-      if (error) showError('로그아웃 실패', error);
-      else { render(null); message.textContent = '로그아웃되었습니다.'; }
-    } catch (error) { showError('로그아웃 실패', error); }
-    finally { setBusy(false); }
-  });
-} catch {
-  status.textContent = '로그인 기능을 불러오지 못했습니다.';
-  message.textContent = '네트워크 연결을 확인하고 페이지를 새로고침하세요.';
-  login.disabled = true;
-  logout.disabled = true;
+  const result = await response.json();
+  if (!response.ok) {
+    if (result.signedIn === false) render(null);
+    throw new Error(result.error || '인증 요청에 실패했습니다.');
+  }
+  return result;
 }
+form.addEventListener('submit', async event => {
+  event.preventDefault(); if (busy || signedIn) return;
+  setBusy(true); message.textContent = '로그인 중입니다.';
+  try {
+    const pending = authRequest('POST', { email: email.value.trim(), password: password.value });
+    password.value = '';
+    render(await pending); message.textContent = '로그인에 성공했습니다.';
+  } catch (error) { showError('로그인 실패', error); }
+  finally { password.value = ''; setBusy(false); }
+});
+logout.addEventListener('click', async () => {
+  if (busy || !signedIn) return; setBusy(true);
+  try { await authRequest('DELETE'); render(null); message.textContent = '로그아웃되었습니다.'; }
+  catch (error) { showError('로그아웃 실패', error); }
+  finally { setBusy(false); }
+});
+try { render(await authRequest('GET')); }
+catch (error) { render(null); showError('로그인 상태 확인 실패', error); }
+setInterval(async () => {
+  if (busy || document.hidden) return;
+  try { const state = await authRequest('GET'); if (state.signedIn !== signedIn) render(state); }
+  catch { /* 다음 확인에서 재시도합니다. */ }
+}, 60000);
 
 noteForm.addEventListener('submit', async (event) => {
   event.preventDefault();
