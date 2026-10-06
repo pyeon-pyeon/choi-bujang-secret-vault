@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (![1, 2, 3].includes(config.step)) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (![1, 2, 3, 4].includes(config.step)) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -15,12 +15,12 @@ export async function runAttackChecks(config) {
     throw new Error('aleph.config.json의 실제 배포 주소를 먼저 넣어 주세요.');
   }
   if (typeof config.sampleMarker !== 'string' || !config.sampleMarker) throw new Error('가상 메모의 확인 표시를 넣어 주세요.');
-  if (config.step === 3) {
+  if ([3, 4].includes(config.step)) {
     const currentCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 5000 }).trim();
     return Promise.all([
       ['/api/notes', 'anonymous_note_read', '토큰 없는 자료 조회는 401이며 메모가 없어야 함', {}],
       ['/api/notes', 'invalid_token_read', '잘못된 토큰 조회는 401이며 메모가 없어야 함', { Authorization: 'Bearer invalid-test-token' }],
-      ['/aleph.json', 'deployment_identity', '배포 단계 3과 현재 커밋이 일치해야 함', {}],
+      ['/aleph.json', 'deployment_identity', `배포 단계 ${config.step}과 현재 커밋이 일치해야 함`, {}],
     ].map(async ([path, attackId, expected, headers]) => {
       let observed;
       try {

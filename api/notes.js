@@ -6,7 +6,7 @@ import { createLoginVerifier } from '../src/verify-login.mjs';
 const config = JSON.parse(await readFile(new URL('../aleph.config.json', import.meta.url), 'utf8'));
 let verifyLogin;
 
-// 토큰의 신원을 검증합니다. 자료 소유자 접근 통제는 다음 단계입니다.
+// 검증된 신원과 DB 소유자가 일치하는 자료만 허용합니다.
 export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store');
   const id = request.query?.id;
@@ -44,15 +44,15 @@ export default async function handler(request, response) {
     const present = row => ({ id: row.id, title: row.title, body: row.content });
     if (request.method === 'GET') {
       const result = single
-        ? await table().select('id,title,content').eq('id', id).maybeSingle()
+        ? await table().select('id,title,content').eq('id', id).eq('owner_id', identity.userId).maybeSingle()
         : await table().select('id,title,content').eq('owner_id', identity.userId).order('created_at', { ascending: true });
       if (result.error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
       if (single && !result.data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
       return response.status(200).json(single ? present(result.data) : result.data.map(present));
     }
     if (request.method === 'DELETE') {
-      // 3단계 한계: 단건 경로는 로그인만 검사하며 소유자를 비교하지 않습니다.
-      const { data, error } = await table().delete().eq('id', id).select('id').maybeSingle();
+      // 행 선택과 삭제를 같은 소유자 조건으로 수행합니다.
+      const { data, error } = await table().delete().eq('id', id).eq('owner_id', identity.userId).select('id').maybeSingle();
       if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
       if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
       return response.status(200).json({ id: data.id });
@@ -73,8 +73,13 @@ export default async function handler(request, response) {
       if (error) return response.status(error.code === '23505' ? 409 : 503).json({ error: error.code === '23505' ? 'ID_EXISTS' : 'NOTES_UNAVAILABLE' });
       return response.status(201).json({ id: newId });
     }
-    const { data, error } = await table().update({ title: body.title, content: body.body })
-      .eq('id', id).select('id,title,content').maybeSingle();
+    // 수정 계약은 title/body만 허용합니다. 소유자 변경은 기본 거부합니다.
+    if (Object.keys(body).some(key => !['title', 'body'].includes(key))) {
+      return response.status(400).json({ error: 'INVALID_UPDATE_FIELDS' });
+    }
+    // 기존 행을 본인 소유로 제한하고, 새 행의 소유자도 본인 ID로 고정합니다.
+    const { data, error } = await table().update({ title: body.title, content: body.body, owner_id: identity.userId })
+      .eq('id', id).eq('owner_id', identity.userId).select('id,title,content').maybeSingle();
     if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
     if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
     return response.status(200).json(present(data));
