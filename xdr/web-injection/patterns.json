@@ -5,19 +5,34 @@
       "name": "요청 인자의 SQL 주입 형태",
       "conditions": "요청 인자에 UNION SELECT 같은 결합 SQL 구문이나 따옴표·논리 비교·주석이 결합된 조건 우회 형태가 있는지 확인한다. SQL 단어 하나나 학습 문서의 인용만으로 공격을 확정하지 않는다.",
       "evidence": "MITRE ATT&CK T1190은 공개 웹 앱 악용 사례로 SQL 주입을 명시하며, 요청 인자의 SQL 조합은 이 과제에서 관찰하는 악용 시도 신호이다.",
-      "sourceUrls": ["https://attack.mitre.org/techniques/T1190/"]
+      "sourceUrls": [
+        "https://attack.mitre.org/techniques/T1190/"
+      ]
     },
     {
       "name": "요청 인자의 스크립트 태그",
       "conditions": "요청 인자에 script 시작·종료 태그와 실행 코드가 결합되어 있는지 확인한다. URL 인코딩 형태도 관찰하되 태그 설명·이스케이프된 예제만으로 공격을 확정하지 않고, 문자열을 실행하지 않는다.",
       "evidence": "T1190의 공개 웹 앱 취약점 악용 관점에서 관찰하는 신호이며, 스크립트 주입의 직접 근거는 MITRE CWE-79이다; script 태그만으로 T1190 성립이나 공격 성공을 단정하지 않는다.",
-      "sourceUrls": ["https://attack.mitre.org/techniques/T1190/", "https://cwe.mitre.org/data/definitions/79.html"]
+      "sourceUrls": [
+        "https://attack.mitre.org/techniques/T1190/",
+        "https://cwe.mitre.org/data/definitions/79.html"
+      ]
     },
     {
       "name": "반복된 상위 경로 탐색",
       "conditions": "요청 경로나 인자에 ../가 반복되어 허용 디렉터리 밖의 파일을 가리키려는 형태가 있는지 확인한다. URL 인코딩과 역슬래시 변형도 관찰하며 정상 상대 경로 하나만으로 공격을 확정하지 않는다.",
       "evidence": "MITRE ATT&CK T1190은 디렉터리 탐색 취약점 악용 사례를 명시하며, 반복된 상위 경로 이동은 이 과제에서 관찰하는 파일 접근 우회 신호이다.",
-      "sourceUrls": ["https://attack.mitre.org/techniques/T1190/"]
+      "sourceUrls": [
+        "https://attack.mitre.org/techniques/T1190/"
+      ]
+    },
+    {
+      "name": "반복된 명령 구분자 주입",
+      "conditions": "같은 출발 주소의 연속 요청에서 명령 구분자 주입 표기가 여러 번 관찰됐다는 경보 근거를 확인한다. 구분 문자 하나나 단일 의심 요청은 차단하지 않는다.",
+      "evidence": "MITRE ATT&CK T1190의 Cutting Edge 사례는 외부 공개 앱에 대한 명령 주입 악용을 명시한다. 반복 명령 구분자 표기는 해당 시도를 관찰하는 학습용 신호이다.",
+      "sourceUrls": [
+        "https://attack.mitre.org/techniques/T1190/"
+      ]
     }
   ]
 }

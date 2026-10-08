@@ -34,3 +34,20 @@
 {"at":"2026-10-08T03:00:56.525Z","evidenceAlertId":"wi-15","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 (확인 필요: 근거 불충분)","enforced":false}
 {"at":"2026-10-08T03:00:56.525Z","evidenceAlertId":"wi-16","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 (확인 필요: 근거 불충분)","enforced":false}
 {"at":"2026-10-08T03:00:56.525Z","evidenceAlertId":"wi-17","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-01","action":"block","confidence":0.95,"reason":"요청 인자의 SQL 주입 형태","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-02","action":"block","confidence":0.95,"reason":"요청 인자의 스크립트 태그","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-03","action":"block","confidence":0.95,"reason":"반복된 상위 경로 탐색","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-04","action":"block","confidence":0.95,"reason":"요청 인자의 SQL 주입 형태","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-05","action":"block","confidence":0.95,"reason":"요청 인자의 SQL 주입 형태 · 요청 인자의 스크립트 태그","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-06","action":"block","confidence":0.95,"reason":"반복된 명령 구분자 주입","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-07","action":"block","confidence":0.95,"reason":"반복된 상위 경로 탐색","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-08","action":"block","confidence":0.95,"reason":"요청 인자의 SQL 주입 형태","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-09","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-10","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-11","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-12","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-13","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-14","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-15","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-16","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}
+{"at":"2026-10-08T03:06:55.194Z","evidenceAlertId":"wi-17","action":"alert","confidence":0.5,"reason":"요청 인자의 SQL 주입 형태 / 요청 인자의 스크립트 태그 / 반복된 상위 경로 탐색 / 반복된 명령 구분자 주입 (확인 필요: 근거 불충분)","enforced":false}

@@ -24,6 +24,14 @@ const PATTERNS = [
     "sourceUrls": [
       "https://attack.mitre.org/techniques/T1190/"
     ]
+  },
+  {
+    "name": "반복된 명령 구분자 주입",
+    "conditions": "같은 출발 주소의 연속 요청에서 명령 구분자 주입 표기가 여러 번 관찰됐다는 경보 근거를 확인한다. 구분 문자 하나나 단일 의심 요청은 차단하지 않는다.",
+    "evidence": "MITRE ATT&CK T1190의 Cutting Edge 사례는 외부 공개 앱에 대한 명령 주입 악용을 명시한다. 반복 명령 구분자 표기는 해당 시도를 관찰하는 학습용 신호이다.",
+    "sourceUrls": [
+      "https://attack.mitre.org/techniques/T1190/"
+    ]
   }
 ];
 
@@ -77,6 +85,9 @@ export function decide(alert) {
   if (sqlDescription) names.push(PATTERNS[0].name);
   if (scriptDescription) names.push(PATTERNS[1].name);
   if (pathDescription) names.push(PATTERNS[2].name);
+  const commandDescription = /명령\s*구분자\s*표기/.test(description);
+  const sourceAddress = typeof alert?.data?.srcip === 'string' && alert.data.srcip.length > 0;
+  if (commandDescription && sourceAddress) names.push(PATTERNS[3].name);
   if (names.length && repeated && !negated && !educational) return answer(0.95, names);
   if (names.length) return answer(0.6, names);
 
