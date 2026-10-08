@@ -1,7 +1,16 @@
-import { readFile } from 'node:fs/promises';
-import { extractAlerts } from './read-alerts.mjs';
-
-const { patterns } = JSON.parse(await readFile(new URL('./patterns.json', import.meta.url), 'utf8'));
+// 인터넷·패키지·파일 접근 없이 실행하는 학습용 판정기입니다.
+const patterns = Object.freeze([
+  Object.freeze({
+    name: '같은 출발 주소의 단시간 로그인 실패 연속',
+    conditions: '같은 주소의 짧은 시간 반복 실패 또는 명시된 대량 반복 대입 근거를 확인한다.',
+    evidence: 'MITRE ATT&CK T1110: 비밀번호를 반복적으로 추측하는 무차별 대입.',
+  }),
+  Object.freeze({
+    name: '여러 계정에 같은 비밀번호 대입',
+    conditions: '다계정과 동일 비밀번호 대입이 설명에 함께 명시되어야 한다.',
+    evidence: 'MITRE ATT&CK T1110.003: 하나 또는 소수의 비밀번호를 여러 계정에 대입하는 Password Spraying.',
+  }),
+]);
 
 function result(confidence, reason) {
   return {
@@ -11,28 +20,12 @@ function result(confidence, reason) {
   };
 }
 
-async function askJev(row, pattern) {
-  // 연결 정보는 아직 없습니다. 공식 호출 규약을 확인한 뒤 어댑터를 연결합니다.
-  // Adapter contract: askConfidence({ alert, pattern }) -> { confidence: number }.
-  // 읽기 모듈에서 선택하고 비밀값을 가린 다섯 항목만 전달합니다.
-  let timer;
-  try {
-    const response = await Promise.race([
-      import('./jev-client.mjs').then((client) => client.askConfidence({ alert: row, pattern })),
-      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 3000); }),
-    ]);
-    const confidence = response?.confidence;
-    return typeof confidence === 'number' && Number.isFinite(confidence)
-      && confidence >= 0 && confidence <= 1 ? confidence : null;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export async function decide(alert) {
-  const [row] = extractAlerts({ schema: 'aleph.xdr.fixture.v1', moduleKey: 'brute-force', alerts: [alert] });
+export function decide(alert) {
+  const row = {
+    description: typeof alert?.rule?.description === 'string' ? alert.rule.description : '',
+    srcip: typeof alert?.data?.srcip === 'string' ? alert.data.srcip : null,
+    level: Number.isInteger(alert?.rule?.level) ? alert.rule.level : null,
+  };
   const description = row.description ?? '';
   const failed = /실패/.test(description);
   const multipleAccounts = /여러\s*계정|서로 다른\s*계정|계정\s*\d+개|\d+개(?:의)?\s*계정/.test(description);
@@ -66,7 +59,6 @@ export async function decide(alert) {
     return result(0.1, `${patterns[0].name} (불일치: 정상 이벤트)`);
   }
 
-  const confidence = await askJev(row, pattern);
-  return result(confidence ?? 0.5, confidence === null
-    ? `${pattern.name} (확인 필요: Jev 응답 없음)` : pattern.name);
+  // 격리 환경에서는 외부 응답을 기다리지 않고 애매한 경보를 알림으로 남깁니다.
+  return result(0.5, `${pattern.name} (확인 필요: 근거 불충분)`);
 }

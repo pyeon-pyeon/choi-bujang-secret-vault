@@ -66,55 +66,55 @@
       "alertId": "bf-11",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-12",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-13",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-14",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-15",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-16",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-17",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-18",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-19",
       "action": "alert",
       "confidence": 0.5,
-      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: Jev 응답 없음)"
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속 (확인 필요: 근거 불충분)"
     },
     {
       "alertId": "bf-20",
