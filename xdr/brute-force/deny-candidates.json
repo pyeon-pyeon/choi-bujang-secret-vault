@@ -1,0 +1,125 @@
+{
+  "schema": "aleph.xdr.deny-candidates.v1",
+  "candidates": [
+    {
+      "ruleId": "xdr_brute_force_bf_01",
+      "evidenceAlertId": "bf-01",
+      "observedAt": "2026-09-27T09:12:01+09:00",
+      "expiresAt": "2026-09-27T00:27:01.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": "user01",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_02",
+      "evidenceAlertId": "bf-02",
+      "observedAt": "2026-09-27T09:12:40+09:00",
+      "expiresAt": "2026-09-27T00:27:40.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": "user01",
+      "confidence": 0.95,
+      "reason": "여러 계정에 같은 비밀번호 대입",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_03",
+      "evidenceAlertId": "bf-03",
+      "observedAt": "2026-09-27T09:14:02+09:00",
+      "expiresAt": "2026-09-27T00:29:02.000Z",
+      "sourceAddress": "198.51.100.20",
+      "account": "user02",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_04",
+      "evidenceAlertId": "bf-04",
+      "observedAt": "2026-09-27T09:20:11+09:00",
+      "expiresAt": "2026-09-27T00:35:11.000Z",
+      "sourceAddress": "192.0.2.30",
+      "account": "user02",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_05",
+      "evidenceAlertId": "bf-05",
+      "observedAt": "2026-09-27T09:21:00+09:00",
+      "expiresAt": "2026-09-27T00:36:00.000Z",
+      "sourceAddress": "203.0.113.21",
+      "account": "user03",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_06",
+      "evidenceAlertId": "bf-06",
+      "observedAt": "2026-09-27T11:02:15+09:00",
+      "expiresAt": "2026-09-27T02:17:15.000Z",
+      "sourceAddress": "198.51.100.44",
+      "account": "user03",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_07",
+      "evidenceAlertId": "bf-07",
+      "observedAt": "2026-09-27T11:05:40+09:00",
+      "expiresAt": "2026-09-27T02:20:40.000Z",
+      "sourceAddress": "203.0.113.15",
+      "account": "user04",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_08",
+      "evidenceAlertId": "bf-08",
+      "observedAt": "2026-09-27T13:10:02+09:00",
+      "expiresAt": "2026-09-27T04:25:02.000Z",
+      "sourceAddress": "192.0.2.18",
+      "account": "user05",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_09",
+      "evidenceAlertId": "bf-09",
+      "observedAt": "2026-09-27T14:22:18+09:00",
+      "expiresAt": "2026-09-27T05:37:18.000Z",
+      "sourceAddress": "198.51.100.8",
+      "account": "user06",
+      "confidence": 0.95,
+      "reason": "여러 계정에 같은 비밀번호 대입",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_brute_force_bf_10",
+      "evidenceAlertId": "bf-10",
+      "observedAt": "2026-09-27T15:40:01+09:00",
+      "expiresAt": "2026-09-27T06:55:01.000Z",
+      "sourceAddress": "203.0.113.40",
+      "account": "user06",
+      "confidence": 0.95,
+      "reason": "같은 출발 주소의 단시간 로그인 실패 연속",
+      "status": "expired",
+      "enforced": false
+    }
+  ]
+}

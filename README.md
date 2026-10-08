@@ -1,5 +1,15 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 보너스 xdr-01 저장점
+
+`xdr/brute-force/read-alerts.mjs`는 원본 가상 경보에서 시각·출발 주소·계정·규칙 수준·설명만 추출하고 비밀값 의심 문자열을 가립니다. `patterns.json`은 MITRE ATT&CK T1110과 T1110.003에 근거한 두 패턴을 담습니다. `decide.mjs`는 패턴과 규칙 수준을 함께 비교하고 확신도 0.85 이상 block, 0.5 이상 alert, 그 아래 record로 분류합니다. 수치 기준은 학습용이며 MITRE의 공식 임계값이 아닙니다.
+
+재실행: `npm run xdr:run -- brute-force`. 결과는 `xdr/brute-force/result.json`에서 확인합니다. 가상 경보 28건의 로컬 결과는 block 10·alert 9·record 9이며, 정상 이벤트 9건의 block은 0건입니다. 명확한 공격은 block, 애매한 경우는 alert, 정상 이벤트는 record여야 합니다. 실제 Jev 호출 규약과 연결 모듈은 없으며 애매한 9건은 응답 없음으로 confidence 0.5 처리했습니다. Jev 응답 수신이나 운영 심판 통과를 주장하지 않습니다.
+
+`node xdr/brute-force/connect-rules.mjs`는 차단 후보만 `deny-candidates.json`에 저장하고 공격·애매한 알림을 `xdr/alerts.log`에 JSON 한 줄씩 추가합니다. 후보에는 근거 경보 번호와 경보 시각 기준 15분 만료가 있으며 재실행으로 연장하지 않습니다. 현재 과거 시험 경보의 후보는 모두 만료입니다. 검증된 ZTNA subjectId 연결 정보가 없어 실제 거부 규칙을 적용하지 않았습니다. 기존 `src/decider.mjs`는 starter.deny 상태로 보존했으며 정상 ZTNA 요청 통과나 실제 차단은 미확인입니다.
+
+본 작업은 5단계 메모 API·서버 전용 설정·기존 판정기와 원본 경보를 변경하지 않습니다. aleph.config.json의 단계·배포 주소·발급자·메모 허용 경로·원본 API 주소는 기존 메모 구현과 대조했으며 보너스 과제를 이유로 변경하지 않았습니다. 새 배포는 실행하지 않았습니다.
+
 ## 현재 작업: 5단계 보완 (새 배포·실제 로그인 미확인)
 
 브라우저에서 Supabase 공개 키와 SDK를 제거했습니다. /api/auth 서버 함수가 공식 SDK로 로그인·사용자 확인·세션 갱신·로그아웃을 수행하고, 토큰은 Secure·HttpOnly·SameSite=Strict 쿠키로만 전달합니다. 브라우저 JSON에는 토큰이나 키가 없습니다. 변경 요청의 쿠키 인증은 고정된 앱 Origin을 확인합니다. 자료 API는 기존 검증 도우미·소유자 검사를 그대로 유지하며 심판 Bearer 요청도 지원합니다.
