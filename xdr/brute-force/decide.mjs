@@ -35,16 +35,28 @@ export async function decide(alert) {
   const [row] = extractAlerts({ schema: 'aleph.xdr.fixture.v1', moduleKey: 'brute-force', alerts: [alert] });
   const description = row.description ?? '';
   const failed = /실패/.test(description);
-  const spraying = /(?:여러|서로 다른|계정\s*\d+개).*(?:같은|동일한)\s*비밀번호/.test(description);
+  const multipleAccounts = /여러\s*계정|서로 다른\s*계정|계정\s*\d+개|\d+개(?:의)?\s*계정/.test(description);
+  const samePassword = /(?:같은|동일(?:한)?)\s*비밀번호/.test(description);
+  const attempt = /대입|시도|넣었|실패/.test(description);
+  const spraying = multipleAccounts && samePassword && attempt;
   const pattern = patterns[spraying ? 1 : 0];
 
-  // 학습용 로컬 기준이며, MITRE가 지정한 수치 기준은 아닙니다.
-  // 높은 규칙 수준과 실제 반복 시도 설명을 함께 요구합니다.
-  const count = Number(description.match(/(?:실패(?:가)?\s*)(\d+)건/)?.[1]);
-  const repetitive = /연속|이어졌|한 글자씩|같은 간격/.test(description);
+  // 학습용 임계값이며 MITRE가 지정한 수치 기준은 아닙니다.
+  // 규칙 수준만으로 차단하지 않고, 설명의 반복 대입 근거를 요구합니다.
+  const count = Number(description.match(/실패(?:가|는|\s*횟수(?:는)?)?\s*(\d+)\s*건/)?.[1]);
   const highVolume = Number.isFinite(count) && count >= 20;
-  if (row.srcip && row.srcip !== '[REDACTED]' && row.level >= 10
-      && (spraying || (failed && (highVolume || repetitive)))) {
+  const sameSource = /(?:같은|동일(?:한)?|한)\s*(?:출발\s*)?(?:주소|IP)/i.test(description);
+  const shortWindow = /[123]\s*분\s*(?:안|이내|동안)/.test(description);
+  const repetitive = /연속|이어졌|한 글자씩|같은 간격/.test(description);
+  const manyAccounts = /계정\s*(\d+)개/.exec(description);
+  const repeatedAcrossAccounts = multipleAccounts && repetitive
+    && manyAccounts && Number(manyAccounts[1]) >= 20;
+  const explicitGuessing = /비밀번호.*(?:한 글자씩|바꿔.*(?:넣|시도))/.test(description);
+  const clearFailure = failed && (
+    (highVolume && (shortWindow || (sameSource && repetitive) || explicitGuessing || row.level >= 10))
+    || (sameSource && repeatedAcrossAccounts)
+  );
+  if (row.srcip && row.srcip !== '[REDACTED]' && (spraying || clearFailure)) {
     return result(0.95, pattern.name);
   }
 
