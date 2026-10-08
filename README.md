@@ -1,5 +1,15 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 보너스 xdr-02 저장점
+
+`xdr/web-injection/read-alerts.mjs`는 확인용으로 다섯 항목만 추출하며 계정 누락은 null, 비밀값 의심 문자열은 가림 처리합니다. 원본 가상 경보는 보존했습니다. `patterns.json`에는 SQL 주입·스크립트 태그·반복 상위 경로 탐색 세 패턴과 공식 근거를 기록했습니다. T1190을 주 근거로 하며 스크립트 주입은 CWE-79를 보충 근거로 명시합니다.
+
+`decide.mjs`는 동일 패턴을 파일 위 상수로 포함하고 외부 import·파일 접근·네트워크 없이 동기적으로 판단합니다. confidence 0.85 이상 block, 0.5 이상 alert, 나머지 record입니다. 실행 명령은 `npm run xdr:run -- web-injection`이며 `result.json`에서 확인합니다. 26건의 로컬 결과는 block 7·alert 10·record 9, 정상 이벤트 9건의 block은 0건입니다. 외부 의존성 없는 VM에서도 실행했습니다. 명령 구분자 경보 wi-06은 세 패턴에 포함되지 않아 alert로 보존했습니다. 심판 통과를 확인한 결과는 아닙니다.
+
+`node xdr/web-injection/respond.mjs`는 block 7건만 근거 경보 번호·경보 시각 기준 15분 만료가 있는 후보로 저장하고, 공격·애매한 알림 17건을 `xdr/alerts.log`에 JSON 한 줄씩 추가합니다. 정상 후보는 0건이며 재실행으로 만료를 연장하지 않습니다. 과거 경보 후보는 만료 상태입니다. 검증된 경보 대상과 ZTNA 주체 연결 계약이 없어 실제 거부 규칙 적용은 미완료입니다. 기존 starter.deny 판정기를 보존했으므로 정상 ZTNA 요청 통과는 미확인입니다.
+
+기존 메모 API와 무차별 로그인 모듈은 유지합니다. aleph.config.json의 단계 5·배포 주소·발급자·메모 CRUD 허용 경로·원본 API 주소는 기존 구현과 대조했으며 변경하지 않았습니다. 배포와 실제 ZTNA 시험은 실행하지 않았습니다.
+
 ## 보너스 xdr-01 저장점
 
 최신 격리 실행 대응: 심판은 decide.mjs 한 파일만 실행하므로 패턴을 파일 위 상수로 옮기고 import·파일 읽기·외부 응답 대기를 제거했습니다. decide(alert)는 동기적으로 결과를 반환하며 애매한 경보는 confidence 0.5로 alert 처리합니다. Jev 호출은 수행하지 않습니다. 아래 Jev 어댑터 설명은 이전 구현 기록입니다. npm run xdr:run 재실행 및 외부 import와 호스트 API가 없는 별도 VM에서 28건 실행을 확인했습니다. 결과는 block 10·alert 9·record 9, 정상 차단 0건입니다. 실제 심판 재통과는 아직 미확인입니다.

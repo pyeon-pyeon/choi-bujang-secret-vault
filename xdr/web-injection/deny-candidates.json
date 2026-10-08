@@ -1,0 +1,89 @@
+{
+  "schema": "aleph.xdr.deny-candidates.v1",
+  "candidates": [
+    {
+      "ruleId": "xdr_web_injection_wi_01",
+      "evidenceAlertId": "wi-01",
+      "observedAt": "2026-09-27T09:13:01+09:00",
+      "expiresAt": "2026-09-27T00:28:01.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 SQL 주입 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_02",
+      "evidenceAlertId": "wi-02",
+      "observedAt": "2026-09-27T09:13:20+09:00",
+      "expiresAt": "2026-09-27T00:28:20.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 스크립트 태그",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_03",
+      "evidenceAlertId": "wi-03",
+      "observedAt": "2026-09-27T09:16:04+09:00",
+      "expiresAt": "2026-09-27T00:31:04.000Z",
+      "sourceAddress": "198.51.100.15",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "반복된 상위 경로 탐색",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_04",
+      "evidenceAlertId": "wi-04",
+      "observedAt": "2026-09-27T10:02:11+09:00",
+      "expiresAt": "2026-09-27T01:17:11.000Z",
+      "sourceAddress": "192.0.2.15",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 SQL 주입 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_05",
+      "evidenceAlertId": "wi-05",
+      "observedAt": "2026-09-27T10:18:33+09:00",
+      "expiresAt": "2026-09-27T01:33:33.000Z",
+      "sourceAddress": "203.0.113.18",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 SQL 주입 형태 · 요청 인자의 스크립트 태그",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_07",
+      "evidenceAlertId": "wi-07",
+      "observedAt": "2026-09-27T13:04:19+09:00",
+      "expiresAt": "2026-09-27T04:19:19.000Z",
+      "sourceAddress": "192.0.2.21",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "반복된 상위 경로 탐색",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_web_injection_wi_08",
+      "evidenceAlertId": "wi-08",
+      "observedAt": "2026-09-27T14:26:02+09:00",
+      "expiresAt": "2026-09-27T05:41:02.000Z",
+      "sourceAddress": "203.0.113.22",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 SQL 주입 형태",
+      "status": "expired",
+      "enforced": false
+    }
+  ]
+}
