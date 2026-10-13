@@ -4,8 +4,8 @@ import { execFileSync } from 'node:child_process';
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
   if (config.step === 12) {
-    const { measureApiChecks, toAttackAttempts } = await import('./api-checks.mjs');
-    return toAttackAttempts(await measureApiChecks({ config }));
+    const { toAttackAttempts } = await import('./api-checks.mjs');
+    return toAttackAttempts();
   }
   if (config.step === 11) {
     let passed = false;

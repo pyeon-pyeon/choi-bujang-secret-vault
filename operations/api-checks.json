@@ -1,0 +1,85 @@
+{
+  "schema": "vault.api-check-snapshot.v1",
+  "deploymentCommit": "793c94384b17bee34da88e464e5688a09a1673b9",
+  "records": [
+    {
+      "attackId": "static_notes_empty",
+      "path": "/data.json",
+      "expected": "HTTP 200·빈 notes 배열",
+      "method": "GET",
+      "source": "live_api",
+      "status": "recorded",
+      "httpStatus": 200,
+      "requestId": "cle1::x6z46-1791873078971-0bfc79f4f5b5",
+      "checkedAt": "2026-10-13T06:31:19.084Z",
+      "matched": true,
+      "observed": "HTTP 200; expected_match=true; checkedAt=2026-10-13T06:31:19.084Z"
+    },
+    {
+      "attackId": "deployment_identity",
+      "path": "/aleph.json",
+      "expected": "HTTP 200·배포 단계와 저장소 일치",
+      "method": "GET",
+      "source": "live_api",
+      "status": "recorded",
+      "httpStatus": 200,
+      "requestId": "cle1::x9xqc-1791873079088-9dc84ea5bcc2",
+      "checkedAt": "2026-10-13T06:31:19.161Z",
+      "matched": true,
+      "observed": "HTTP 200; expected_match=true; checkedAt=2026-10-13T06:31:19.161Z",
+      "deploymentCommit": "793c94384b17bee34da88e464e5688a09a1673b9"
+    },
+    {
+      "attackId": "anonymous_notes_denied",
+      "path": "/api/notes",
+      "expected": "HTTP 401·자료 없음",
+      "method": "GET",
+      "source": "live_api",
+      "status": "not_run",
+      "httpStatus": null,
+      "requestId": null,
+      "checkedAt": null,
+      "matched": null,
+      "observed": "not_run"
+    },
+    {
+      "attackId": "anonymous_operations_denied",
+      "path": "/api/operations",
+      "expected": "HTTP 401·기록 없음",
+      "method": "GET",
+      "source": "live_api",
+      "status": "not_run",
+      "httpStatus": null,
+      "requestId": null,
+      "checkedAt": null,
+      "matched": null,
+      "observed": "not_run"
+    },
+    {
+      "attackId": "own_notes",
+      "path": null,
+      "expected": "승인된 본인 자료 읽기는 별도 실측",
+      "method": null,
+      "source": "live_api",
+      "status": "not_run",
+      "httpStatus": null,
+      "requestId": null,
+      "checkedAt": null,
+      "matched": null,
+      "observed": "not_run"
+    },
+    {
+      "attackId": "write_and_approval_checks",
+      "path": null,
+      "expected": "쓰기·승인·복원·회수는 별도 실측",
+      "method": null,
+      "source": "live_api",
+      "status": "not_run",
+      "httpStatus": null,
+      "requestId": null,
+      "checkedAt": null,
+      "matched": null,
+      "observed": "not_run"
+    }
+  ]
+}

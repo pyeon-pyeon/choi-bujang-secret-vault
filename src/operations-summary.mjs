@@ -1,4 +1,4 @@
-import { measureApiChecks } from './api-checks.mjs';
+import { readApiCheckSnapshot } from './api-checks.mjs';
 export { measureApiChecks } from './api-checks.mjs';
 import { readFile } from 'node:fs/promises';
 import { RULE_IDS } from './decider.mjs';
@@ -38,7 +38,7 @@ export function summarizeOperations(ruleIds, datasets) {
   };
 }
 
-export async function readOperationsSummary(options) {
+export async function readOperationsSummary() {
   const datasets = [];
   for (const moduleKey of ['brute-force', 'web-injection']) {
     let result = null;
@@ -47,7 +47,7 @@ export async function readOperationsSummary(options) {
     datasets.push({ moduleKey, result });
   }
   const summary = summarizeOperations(RULE_IDS, datasets);
-  summary.apiChecks = options ? await measureApiChecks(options) : { records: [], count: 0, passed: 0, failed: 0, notRun: 0, status: 'not_run' };
+  summary.apiChecks = readApiCheckSnapshot();
   summary.checkedAt = new Date().toISOString();
   return summary;
 }

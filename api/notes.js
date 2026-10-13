@@ -10,6 +10,7 @@ let verifyLogin;
 
 // 검증된 신원과 DB 소유자가 일치하는 자료만 허용합니다.
 export default async function handler(request, response) {
+  response.setHeader('X-Request-ID', randomUUID());
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('X-Resource-ID', RESOURCE_IDS.notes);
   const id = request.query?.id;

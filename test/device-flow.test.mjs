@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { registeredDevice, requireRegisteredDevice, deviceTokenHash } from '../src/device-access.mjs';
 
 test('요청은 대기만 생성, 서버 승인 후 자료 허용, 회수·다른 계정은 거부', async () => {
@@ -22,7 +22,7 @@ test('요청은 대기만 생성, 서버 승인 후 자료 허용, 회수·다�
     };
     return query;
   } };
-  const globals = { URL, config, randomBytes, registeredDevice, deviceTokenHash, requireRegisteredDevice,
+  const globals = { URL, config, randomBytes, randomUUID, registeredDevice, deviceTokenHash, requireRegisteredDevice,
     RESOURCE_IDS: { notes: 'notes' },
     process: { env: { SUPABASE_URL: 'https://fixture.invalid', SUPABASE_SECRET_KEY: 'synthetic-test-only' } },
     createLoginVerifier: () => async () => ({ userId: 'fixture-B' }), createClient: () => client };
