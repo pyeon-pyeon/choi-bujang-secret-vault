@@ -53,10 +53,10 @@ export default async function handler(request, response) {
     const present = row => ({ id: row.id, title: row.title, body: row.content });
     if (request.method === 'GET') {
       const result = single
-        ? await table().select('id,title,content').eq('id', id).eq('owner_id', identity.userId).maybeSingle()
+        ? await table().select('id,title,content,owner_id').eq('id', id).eq('owner_id', identity.userId).maybeSingle()
         : await table().select('id,title,content').eq('owner_id', identity.userId).order('created_at', { ascending: true });
       if (result.error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
-      if (single && !result.data) return response.status(404).json({ error: 'NOTE_NOT_FOUND', reason: '자료가 없거나 접근 권한이 없습니다.' });
+      if (single && (!result.data || result.data.owner_id !== identity.userId)) return response.status(404).json({ error: 'NOTE_NOT_FOUND', reason: '자료가 없거나 접근 권한이 없습니다.' });
       return response.status(200).json(single ? present(result.data) : result.data.map(present));
     }
     if (request.method === 'DELETE') {
