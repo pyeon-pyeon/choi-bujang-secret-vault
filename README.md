@@ -1,5 +1,15 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 8단계 저장점: 자원별 서버 권한 규칙
+
+src/resources.mjs가 notes·notices를 구분하며 기존 메모 API는 고정 X-Resource-ID를 반환합니다. 판정기는 서버 RESOURCE_ZONES_JSON의 classId·projectId·subjectId·service·path·methods 목록을 정확히 대조합니다. 기능 경로·알 수 없는 경로·쿼리 요청은 거부하고 자료 ID는 경로로 선택합니다. 클라이언트 role·헤더로 권한을 얻을 수 없습니다. 기기·입력 출처·복합 step_up 규칙을 유지합니다.
+
+현재 선택한 서버 권한 목록 방식이 운영 판정 엔진에서 지원되는지는 미확인입니다. 권한 목록이 없으면 운영 판정기는 기본 거부하며 정상 접근도 허용하지 않습니다. 이전에 시도한 Supabase 주체 매핑 테이블은 사용하지 않습니다. 실제 사용자 식별자는 Git에 기록하지 않습니다.
+
+메모 API는 DB owner_id 조건 및 반환 행 소유자를 재확인합니다. PUT /api/notices/:id는 learning_notices의 저장된 구역을 읽고 vault_staff_roles에서 검증된 로그인 계정의 instructor 권한을 대조합니다. 학생은 403, 타인 메모 단건은 404이며 본문 role 수정은 거부합니다. 해당 공지·권한 테이블은 사용자가 앞서 생성했으나 실제 권한 행과 공지 등록은 미확인입니다. DB를 변경하거나 기존 자료·주소·화면 메뉴를 바꾸지 않았습니다.
+
+재실행: npm run decider:test. 시험은 scripts/zone-fixtures.mjs의 가상 서버 권한 목록을 주입하며 운영 권한 설정을 시험한 것이 아닙니다. A 본인 GET·PUT 허용, B의 A GET·PUT 거부, 학생 공지 PUT 거부, 강사 PUT 허용을 가상으로 확인했습니다. 모의 API는 본인 GET 200·타인 GET 404·학생 공지 PUT 403·강사 PUT 200을 확인했습니다. 실제 요청·배포·심판 재통과는 미실행입니다. 설정 단계는 8이며 주소·발급자·기존 메모 경로·원본 URL을 유지하고 실제 공지 PUT 경로만 추가했습니다.
+
 ## 7단계로 복원
 
 8단계에서 추가한 자원·권한 저장소 연결과 공지 API를 제거하고 f50f545의 7단계 기능·설정·시험·빌드로 복원했습니다. XDR 작업과 기존 Git 이력은 보존하며 Supabase 테이블·자료는 변경하지 않았습니다. 등록·미등록·복합·재확인 후 가상 시험 및 로컬 빌드를 통과했습니다. 실제 배포는 아직 복원하지 않았습니다. 재확인은 `npm run decider:test`와 `npm run fixture:7`, 로컬 빌드는 `npm run build -- --local`입니다.

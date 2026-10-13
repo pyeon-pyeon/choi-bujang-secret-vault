@@ -1,7 +1,9 @@
 // ALEPH SDP 엔진이 확인한 요청만 받는 학생 판정기 시작점입니다.
 // 등록 기기의 자료실 읽기만 허용하고 나머지는 기존 기본 거부를 유지합니다.
 // 요청 본문의 userId, role, 기기 키, 토큰을 별도로 믿거나 저장하지 마세요.
-export const RULE_IDS = Object.freeze(['starter.deny', 'device_registered', 'step_up_required']);
+import { hasZoneAccess, serverZones } from './resource-zones.mjs';
+
+export const RULE_IDS = Object.freeze(['starter.deny', 'device_registered', 'step_up_required', 'resource_zone']);
 
 const REQUEST_FIELDS = new Set([
   'schema', 'requestId', 'classId', 'projectId', 'subjectId', 'deviceId',
@@ -34,7 +36,8 @@ function connectionInputIsValid(request) {
     && Number.isInteger(event.count) && event.count >= 0);
 }
 
-export async function decide(request) {
+export function createDecider(zones) {
+  return async function decide(request) {
   if (request.deviceRegistered !== true) {
     return {
       schema: 'aleph.decision.v1',
@@ -53,8 +56,16 @@ export async function decide(request) {
       ruleIds: ['starter.deny'],
     };
   }
-  if (request.service === 'notes' && request.method === 'GET'
-      && ['GET /notes', 'GET /notes/:id'].includes(request.route)) {
+  const collection = request.service === 'notes' && request.method === 'GET'
+    && request.path === '/notes' && request.route === 'GET /notes';
+  const base = request.service === 'notes' ? '/notes/' : request.service === 'notices' ? '/notices/' : null;
+  const id = base && typeof request.path === 'string' && request.path.startsWith(base)
+    ? request.path.slice(base.length) : '';
+  const validId = /^[A-Za-z0-9_-]+$/.test(id) && !['export', 'import', 'search', 'admin'].includes(id);
+  const single = base && validId
+    && request.route === `${request.method} ${base}:id`
+    && (request.service === 'notes' ? ['GET', 'PUT'].includes(request.method) : request.method === 'PUT');
+  if ((collection || single) && hasZoneAccess(request, zones)) {
     // 학습용 복합 기준: 가상 이른 시각 + 낯선 네트워크 + 최근 다량 행동.
     // 지역은 이 결정에 쓰지 않으며 실제 접속 위치를 추정하지 않습니다.
     const unusualHour = request.signals.hour >= 0 && request.signals.hour < 6;
@@ -80,7 +91,7 @@ export async function decide(request) {
       requestId: request.requestId,
       decision: 'allow',
       reasonCode: 'approved',
-      ruleIds: ['device_registered'],
+      ruleIds: ['device_registered', 'resource_zone'],
     };
   }
   return {
@@ -88,6 +99,11 @@ export async function decide(request) {
     requestId: request.requestId,
     decision: 'deny',
     reasonCode: 'starter_not_ready',
-    ruleIds: [RULE_IDS[0]],
+    ruleIds: ['resource_zone'],
   };
+  };
+}
+
+export async function decide(request) {
+  return createDecider(serverZones())(request);
 }

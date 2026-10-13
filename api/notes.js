@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createLoginVerifier } from '../src/verify-login.mjs';
+import { RESOURCE_IDS } from '../src/resources.mjs';
 
 const config = JSON.parse(await readFile(new URL('../aleph.config.json', import.meta.url), 'utf8'));
 let verifyLogin;
@@ -9,6 +10,7 @@ let verifyLogin;
 // 검증된 신원과 DB 소유자가 일치하는 자료만 허용합니다.
 export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store');
+  response.setHeader('X-Resource-ID', RESOURCE_IDS.notes);
   const id = request.query?.id;
   const single = id !== undefined;
   const methods = single ? ['GET', 'PUT', 'DELETE'] : ['GET', 'POST'];
@@ -53,17 +55,17 @@ export default async function handler(request, response) {
     const present = row => ({ id: row.id, title: row.title, body: row.content });
     if (request.method === 'GET') {
       const result = single
-        ? await table().select('id,title,content').eq('id', id).eq('owner_id', identity.userId).maybeSingle()
+        ? await table().select('id,title,content,owner_id').eq('id', id).eq('owner_id', identity.userId).maybeSingle()
         : await table().select('id,title,content').eq('owner_id', identity.userId).order('created_at', { ascending: true });
       if (result.error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
-      if (single && !result.data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+      if (single && (!result.data || result.data.owner_id !== identity.userId)) return response.status(404).json({ error: 'NOTE_NOT_FOUND', reason: '자료가 없거나 접근 권한이 없습니다.' });
       return response.status(200).json(single ? present(result.data) : result.data.map(present));
     }
     if (request.method === 'DELETE') {
       // 행 선택과 삭제를 같은 소유자 조건으로 수행합니다.
       const { data, error } = await table().delete().eq('id', id).eq('owner_id', identity.userId).select('id').maybeSingle();
       if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
-      if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+      if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND', reason: '자료가 없거나 접근 권한이 없습니다.' });
       return response.status(200).json({ id: data.id });
     }
     let body = request.body;
@@ -84,13 +86,13 @@ export default async function handler(request, response) {
     }
     // 수정 계약은 title/body만 허용합니다. 소유자 변경은 기본 거부합니다.
     if (Object.keys(body).some(key => !['title', 'body'].includes(key))) {
-      return response.status(400).json({ error: 'INVALID_UPDATE_FIELDS' });
+      return response.status(400).json({ error: 'INVALID_UPDATE_FIELDS', reason: '제목과 본문만 수정할 수 있습니다.' });
     }
     // 기존 행을 본인 소유로 제한하고, 새 행의 소유자도 본인 ID로 고정합니다.
     const { data, error } = await table().update({ title: body.title, content: body.body, owner_id: identity.userId })
       .eq('id', id).eq('owner_id', identity.userId).select('id,title,content').maybeSingle();
     if (error) return response.status(503).json({ error: 'NOTES_UNAVAILABLE' });
-    if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND' });
+    if (!data) return response.status(404).json({ error: 'NOTE_NOT_FOUND', reason: '자료가 없거나 접근 권한이 없습니다.' });
     return response.status(200).json(present(data));
 
   } catch {
