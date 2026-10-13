@@ -6,12 +6,12 @@ export async function runAttackChecks(config) {
   if (config.step === 10) {
     const attempts = [];
     try {
-      execFileSync(process.execPath, ['--test', 'test/note-restore.test.mjs'], {
+      execFileSync(process.execPath, ['--test', 'test/note-restore.test.mjs', 'test/policy-backup.test.mjs'], {
         cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000,
       });
       attempts.push({ attackId: 'note_restore_fixture',
-        expected: '가상 B 한 건 ID·소유자·해시 일치, 다른 자료·감사 이력 보존 및 변조 사본 거부',
-        observed: 'B API·RPC 모의 시험 통과; 실제 SQL·B 복구·배포 및 복구 후 1~9단계 시험 미실행' });
+        expected: '가상 B 한 건 복원 및 정책 사본 변조·누락·지문 불일치 중단',
+        observed: 'B API·RPC 모의 시험 및 격리 정책 사본 재검증 시험 통과; 실제 SQL·B 복구·배포 및 복구 후 1~9단계 시험 미실행' });
     } catch {
       attempts.push({ attackId: 'note_restore_fixture', expected: 'B 가상 한 건 복원 시험 통과',
         observed: '로컬 모의 시험 실패; 실제 복원 미실행' });

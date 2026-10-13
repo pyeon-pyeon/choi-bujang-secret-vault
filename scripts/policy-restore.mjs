@@ -2,7 +2,7 @@ import { readFile, writeFile, lstat, unlink, realpath } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { comparePolicies } from './policy-diff.mjs';
+import { readVerifiedPolicyCopy } from './policy-diff.mjs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const isNotesRoute = route => typeof route === 'string'
@@ -19,10 +19,12 @@ export async function planRestore({ backupDir, trustedManifestSha256, testDir })
   if (marker.schema !== 'vault.isolated-policy-test.v1' || marker.operational !== false) {
     throw new Error('격리된 시험 정책 폴더만 복원할 수 있습니다.');
   }
-  const comparison = await comparePolicies({ backupDir, trustedManifestSha256, currentDir: root });
-  const safeCode = await readFile(join(backupDir, 'src/decider.mjs'), 'utf8');
+  // 복원 계획·실행 호출마다 사본을 새로 읽고 검증한 바로 그 바이트만 사용합니다.
+  if (await realpath(root) === await realpath(backupDir)) throw new Error('사본 폴더는 복원 대상이 아닙니다.');
+  const verified = await readVerifiedPolicyCopy({ backupDir, trustedManifestSha256 });
+  const safeCode = verified.files.get('src/decider.mjs').toString('utf8');
   const currentCode = await readFile(join(root, 'src/decider.mjs'), 'utf8');
-  const safeConfig = JSON.parse(await readFile(join(backupDir, 'aleph.config.json'), 'utf8'));
+  const safeConfig = JSON.parse(verified.files.get('aleph.config.json').toString('utf8'));
   const configBytes = await readFile(join(root, 'aleph.config.json'), 'utf8');
   const config = JSON.parse(configBytes);
   if (!Array.isArray(config.allowedRoutes) || !Array.isArray(safeConfig.allowedRoutes)) {
@@ -44,7 +46,7 @@ export async function planRestore({ backupDir, trustedManifestSha256, testDir })
     { path: 'src/decider.mjs', content: wrapper, create: false },
     { path: 'aleph.config.json', content: JSON.stringify(nextConfig, null, 2) + '\n', create: false },
   ];
-  const review = { restoreVersion: comparison.restoreVersion, service: 'notes',
+  const review = { restoreVersion: verified.manifest.version, service: 'notes',
     changes: writes.map(item => ({ path: item.path, operation: item.create ? 'create' : 'replace', sha256: hash(item.content) })),
     preserved: ['다른 서비스 판정 규칙', '다른 서비스 허용 경로', '감사·XDR 로그', 'DB 자료'],
     currentCodeSha256: hash(currentCode), currentConfigSha256: hash(configBytes) };

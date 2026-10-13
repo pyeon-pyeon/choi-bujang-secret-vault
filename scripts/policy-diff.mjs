@@ -26,12 +26,10 @@ function changedRange(before, after) {
     currentTest: { startLine: first + 1, lineCount: endNew - first } };
 }
 
-export async function comparePolicies({ backupDir, trustedManifestSha256, currentDir,
+export async function readVerifiedPolicyCopy({ backupDir, trustedManifestSha256,
   now = Date.now() }) {
-  if (!backupDir || !currentDir || !/^[a-f0-9]{64}$/.test(trustedManifestSha256 || '')) fail();
+  if (!backupDir || !/^[a-f0-9]{64}$/.test(trustedManifestSha256 || '')) fail();
   const backup = resolve(backupDir);
-  const current = resolve(currentDir);
-  if (backup === current) fail();
   const manifestBytes = await readRegular(join(backup, 'manifest.json'));
   if (sha256(manifestBytes) !== trustedManifestSha256) fail();
   const manifest = JSON.parse(manifestBytes);
@@ -43,7 +41,7 @@ export async function comparePolicies({ backupDir, trustedManifestSha256, curren
       || Date.parse(manifest.incidentAt) > now
       || !Array.isArray(manifest.files) || manifest.files.length !== POLICY_FILES.length
       || new Set(manifest.files.map(item => item?.path)).size !== POLICY_FILES.length) fail();
-  const differences = [];
+  const files = new Map();
   for (const item of manifest.files) {
     if (!POLICY_FILES.includes(item?.path) || !/^[a-f0-9]{64}$/.test(item.sha256 || '')) fail();
     // 디렉터리 심볼릭 링크도 허용하지 않습니다.
@@ -51,6 +49,18 @@ export async function comparePolicies({ backupDir, trustedManifestSha256, curren
     if (item.path.startsWith('src/') && (await lstat(join(backup, 'src'))).isSymbolicLink()) fail();
     const safe = await readRegular(join(backup, item.path));
     if (sha256(safe) !== item.sha256) fail();
+    files.set(item.path, safe);
+  }
+  return { manifest, files };
+}
+
+export async function comparePolicies({ backupDir, trustedManifestSha256, currentDir, now = Date.now() }) {
+  if (!currentDir || resolve(backupDir || '.') === resolve(currentDir)) fail();
+  const { manifest, files } = await readVerifiedPolicyCopy({ backupDir, trustedManifestSha256, now });
+  const current = resolve(currentDir);
+  const differences = [];
+  for (const item of manifest.files) {
+    const safe = files.get(item.path);
     let test;
     try { test = await readRegular(join(current, item.path)); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
