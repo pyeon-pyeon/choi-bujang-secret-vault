@@ -3,6 +3,27 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 10) {
+    const attempts = [];
+    try {
+      execFileSync(process.execPath, ['--test', 'test/note-restore.test.mjs'], {
+        cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000,
+      });
+      attempts.push({ attackId: 'note_restore_fixture',
+        expected: '가상 B 한 건 ID·소유자·해시 일치, 다른 자료·감사 이력 보존 및 변조 사본 거부',
+        observed: 'B API·RPC 모의 시험 통과; 실제 SQL·B 복구·배포 및 복구 후 1~9단계 시험 미실행' });
+    } catch {
+      attempts.push({ attackId: 'note_restore_fixture', expected: 'B 가상 한 건 복원 시험 통과',
+        observed: '로컬 모의 시험 실패; 실제 복원 미실행' });
+    }
+    const { comparePolicies } = await import('../scripts/policy-diff.mjs');
+    let rejected = false;
+    try { await comparePolicies({ currentDir: '.', backupDir: null, trustedManifestSha256: null }); }
+    catch { rejected = true; }
+    attempts.push({ attackId: 'missing_safe_policy', expected: '검증된 안전 사본·신뢰 지문 없으면 중단',
+      observed: rejected ? '실제 로컬 호출 중단 확인; 운영 정책 변경 없음' : '중단 실패; 운영 정책 복원 미실행' });
+    return attempts;
+  }
   if (config.step === 9) {
     const { detect } = await import('./detect.mjs');
     const reads = (count, subject = 'learner_fixture', interval = 2000) =>
