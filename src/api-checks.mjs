@@ -80,6 +80,13 @@ export function emptyApiChecks() {
     checkedAt: null, matched: null, observed: 'not_run' })));
 }
 
+// 공식 41종 실행 결과가 아직 없으므로 확인된 판정은 0건입니다.
+// HTTP 점검·로컬 fixture는 이 집계에 입력하지 않습니다.
+export function defenseTestCoverage() {
+  return { expectedTestCount: 41, catalogAvailable: false, status: 'not_run',
+    executed: 0, notRun: 41, blocked: 0, allowed: 0, passed: 0 };
+}
+
 export function readApiCheckSnapshot() {
   try {
     const saved = JSON.parse(readFileSync(new URL('../operations/api-checks.json', import.meta.url), 'utf8'));
@@ -99,11 +106,11 @@ export function readApiCheckSnapshot() {
       count: result.count, recordedCount: result.count - result.notRun, notRun: result.notRun,
       source: 'recorded_live_api', snapshotStatus: 'verified',
       deploymentCommit: typeof saved.deploymentCommit === 'string' && /^[a-f0-9]{40}$/i.test(saved.deploymentCommit) ? saved.deploymentCommit : null,
-      coverage: { expectedTestCount: 41, catalogAvailable: false, status: 'not_run', blocked: null, allowed: null } };
+      coverage: defenseTestCoverage() };
   } catch {
     const empty = emptyApiChecks();
     return { records: empty.records, count: empty.count, recordedCount: 0, notRun: empty.notRun,
       source: 'recorded_live_api', snapshotStatus: 'missing_or_invalid', deploymentCommit: null,
-      coverage: { expectedTestCount: 41, catalogAvailable: false, status: 'not_run', blocked: null, allowed: null } };
+      coverage: defenseTestCoverage() };
   }
 }

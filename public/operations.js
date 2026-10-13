@@ -48,9 +48,10 @@ async function loadSummary() {
     if (!Array.isArray(checks?.records) || checks.count !== checks.records.length
         || checks.recordedCount !== checks.records.filter(row => row.status === 'recorded').length
         || checks.notRun !== checks.records.filter(row => row.status === 'not_run').length
-        || checks.coverage?.status !== 'not_run' || checks.coverage.blocked !== null
-        || checks.coverage.allowed !== null) throw new Error('api_count_mismatch');
-    const api = section('보관된 실제 API 응답 기록', '아래 표는 별도 GET 확인에서 보관한 같은 기록입니다. 공식 41종: 미실행·목록 미확보. 막음·허용 총계는 미확인입니다.');
+        || checks.coverage?.status !== 'not_run' || checks.coverage.executed !== 0
+        || checks.coverage.notRun !== 41 || checks.coverage.blocked !== 0
+        || checks.coverage.allowed !== 0 || checks.coverage.passed !== 0) throw new Error('api_count_mismatch');
+    const api = section('보관된 실제 API 응답 기록', '아래 표는 별도 GET 확인에서 보관한 같은 기록입니다. 공식 41종: 실행 0건·미실행 41건. 확인된 막음 0건·허용 0건·통과 0건. 아래 HTTP 기록은 이 시험에 포함하지 않습니다.');
     api.append(section('기록 대상 배포 커밋', checks.deploymentCommit ?? '미확인'));
     const table = document.createElement('table');
     const header = document.createElement('tr');

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { summarizeOperations, readOperationsSummary, measureApiChecks } from '../src/operations-summary.mjs';
-import { API_CHECKS, toAttackAttempts, summarizeApiChecks, readApiCheckSnapshot } from '../src/api-checks.mjs';
+import { API_CHECKS, toAttackAttempts, summarizeApiChecks, readApiCheckSnapshot, defenseTestCoverage } from '../src/api-checks.mjs';
 
 test('가린 기록과 합계 일치, 원문 제외, 실행 증거 없는 상태는 미확인', async () => {
   const result = { schema: 'aleph.xdr.result.v1', moduleKey: 'brute-force',
@@ -100,7 +100,7 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
         ? { step: 12, repoUrl: config.repoUrl } : { error: 'LOGIN_REQUIRED' } };
   } });
   const archive = { records: apiChecks.records.map(row => ({ ...row, status: row.status === 'not_run' ? 'not_run' : 'recorded' })),
-    count: 6, recordedCount: 4, notRun: 2, coverage: { status: 'not_run', blocked: null, allowed: null } };
+    count: 6, recordedCount: 4, notRun: 2, coverage: defenseTestCoverage() };
   const summary = { ...summarizeOperations(['device_registered'], []), apiChecks: archive };
   const context = vm.createContext({
     document: { querySelector: id => elements.get(id), createElement: () => new Element() },
@@ -113,7 +113,8 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
   const data = elements.get('#operations-data');
   const text = node => [node.textContent, ...node.children.map(text)].join(' ');
   assert.equal(data.hidden, false);
-  assert.match(text(data), /공식 41종: 미실행/);
+  assert.match(text(data), /공식 41종: 실행 0건·미실행 41건/);
+  assert.match(text(data), /확인된 막음 0건·허용 0건·통과 0건/);
   assert.ok(!text(data).includes('통과 4'));
   assert.ok(!text(data).includes('block 18'));
   for (const row of apiChecks.records) assert.ok(text(data).includes(row.attackId));
@@ -127,8 +128,8 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
 test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실행 없이 미실행 반환', async () => {
   const snapshot = readApiCheckSnapshot();
   assert.equal(snapshot.coverage.status, 'not_run');
-  assert.equal(snapshot.coverage.blocked, null);
-  assert.equal(snapshot.coverage.allowed, null);
+  assert.equal(snapshot.coverage.blocked, 0);
+  assert.equal(snapshot.coverage.allowed, 0);
   assert.equal(snapshot.recordedCount, snapshot.records.filter(row => row.status === 'recorded').length);
   assert.equal(snapshot.passed, undefined);
   const original = globalThis.fetch;
@@ -139,4 +140,14 @@ test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실
     assert.equal(attempts.length, API_CHECKS.length);
     assert.ok(attempts.every(row => row.observed === 'not_run'));
   } finally { globalThis.fetch = original; }
+});
+
+test('미실행 41종은 막음·허용·통과에 포함되지 않음', () => {
+  const coverage = defenseTestCoverage();
+  assert.deepEqual(coverage, { expectedTestCount: 41, catalogAvailable: false, status: 'not_run',
+    executed: 0, notRun: 41, blocked: 0, allowed: 0, passed: 0 });
+  assert.equal(coverage.executed + coverage.notRun, coverage.expectedTestCount);
+  const snapshot = readApiCheckSnapshot();
+  // 과거 HTTP 기록 수와 무관하게 공식 시험은 전부 미실행입니다.
+  assert.deepEqual(snapshot.coverage, coverage);
 });
