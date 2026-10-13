@@ -1,3 +1,4 @@
+import { readDefenseTestResults } from './defense-test-results.mjs';
 import { readFileSync } from 'node:fs';
 
 // 묶음과 작전실이 함께 사용하는 읽기 전용 점검 목록입니다.
@@ -80,12 +81,6 @@ export function emptyApiChecks() {
     checkedAt: null, matched: null, observed: 'not_run' })));
 }
 
-// 공식 시험 목록과 검증된 실행 기록이 없으면 총계를 만들지 않습니다.
-export function defenseTestCoverage() {
-  return { catalogAvailable: false, status: 'not_run', records: [],
-    expectedTestCount: null, executed: null, notRun: null, blocked: null, allowed: null, passed: null };
-}
-
 export function readApiCheckSnapshot() {
   try {
     const saved = JSON.parse(readFileSync(new URL('../operations/api-checks.json', import.meta.url), 'utf8'));
@@ -105,11 +100,11 @@ export function readApiCheckSnapshot() {
       count: result.count, recordedCount: result.count - result.notRun, notRun: result.notRun,
       source: 'recorded_live_api', snapshotStatus: 'verified',
       deploymentCommit: typeof saved.deploymentCommit === 'string' && /^[a-f0-9]{40}$/i.test(saved.deploymentCommit) ? saved.deploymentCommit : null,
-      coverage: defenseTestCoverage() };
+      coverage: readDefenseTestResults() };
   } catch {
     const empty = emptyApiChecks();
     return { records: empty.records, count: empty.count, recordedCount: 0, notRun: empty.notRun,
       source: 'recorded_live_api', snapshotStatus: 'missing_or_invalid', deploymentCommit: null,
-      coverage: defenseTestCoverage() };
+      coverage: readDefenseTestResults() };
   }
 }

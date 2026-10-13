@@ -30,11 +30,9 @@ export function summarizeOperations(ruleIds, datasets) {
   return {
     schema: 'vault.operations-summary.v1', checkedAt: new Date().toISOString(),
     rules: { count: rules.length, records: rules, source: 'server_configuration' },
-    detection: { count: null, counts: null, records: [], source: 'live_engine',
+    detection: { count: sources.some(s => s.status === 'fixture_records_verified') ? records.length : null,
+      counts: sources.some(s => s.status === 'fixture_records_verified') ? counts : null, records, sources, source: 'local_fixture',
       operationalStatus: 'no_verified_live_records' },
-    fixtures: { count: sources.some(s => s.status === 'fixture_records_verified') ? records.length : null,
-      records, sources: sources.map(({ moduleKey, status }) => ({ moduleKey, status })),
-      source: 'local_fixture', includedInDefenseTotals: false },
     revocation: { status: 'not_verified', count: null, records: [], reason: '실제 회수·시간 실측 기록이 연결되지 않았습니다.' },
     recovery: { status: 'not_verified', version: null, records: [], reason: '실제 검증 사본 복구 버전·복구 후 실측 기록이 연결되지 않았습니다.' },
   };
