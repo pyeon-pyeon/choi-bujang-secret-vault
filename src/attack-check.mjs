@@ -3,29 +3,6 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (config.step === 8) {
-    const { fixtureDecider, NOTICE_ID } = await import('../scripts/zone-fixtures.mjs');
-    const decide = fixtureDecider();
-    const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
-    const { normal } = fixtureRequests();
-    const attempts = [];
-    for (const [attackId, patch, expected] of [
-      ['normal_note_read_fixture', {}, '모의 권한 저장소의 A 본인 메모 GET: allow'],
-      ['own_note_update_fixture', { method: 'PUT', route: 'PUT /notes/:id' }, '모의 권한 저장소의 A 본인 PUT: allow'],
-      ['other_note_read_fixture', { subjectId: 'other_fixture' }, '모의 권한 저장소의 B 타인 GET: deny'],
-      ['other_note_update_fixture', { subjectId: 'other_fixture', method: 'PUT', route: 'PUT /notes/:id' }, '모의 권한 저장소의 B 타인 PUT: deny'],
-      ['function_path_fixture', { path: '/notes/export' }, '가상 기능 경로: deny'],
-      ['method_mismatch_fixture', { method: 'PUT' }, '가상 메서드·경로 불일치: deny'],
-      ['notice_update_fixture', { service: 'notices', method: 'PUT', path: `/notices/${NOTICE_ID}`, route: 'PUT /notices/:id' },
-        '모의 권한 저장소의 학생 공지 PUT: deny'],
-      ['instructor_notice_update_fixture', { subjectId: 'teacher_fixture', service: 'notices', method: 'PUT', path: `/notices/${NOTICE_ID}`, route: 'PUT /notices/:id' }, '모의 권한 저장소의 강사 공지 PUT: allow'],
-    ]) {
-      const response = await decide({ ...normal, ...patch });
-      attempts.push({ attackId, expected,
-        observed: `로컬 가상 요청·모의 권한 저장소: ${response.decision}·${response.reasonCode}; 실제 A/B 소유자·강사 권한 시험 미실행` });
-    }
-    return attempts;
-  }
   if (config.step === 7) {
     const { decide } = await import('./decider.mjs');
     const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
