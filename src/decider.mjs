@@ -1,8 +1,6 @@
 // ALEPH SDP 엔진이 확인한 요청만 받는 학생 판정기 시작점입니다.
 // 등록 기기의 자료실 읽기만 허용하고 나머지는 기존 기본 거부를 유지합니다.
 // 요청 본문의 userId, role, 기기 키, 토큰을 별도로 믿거나 저장하지 마세요.
-import { hasZoneAccess, serverZones } from './resource-zones.mjs';
-
 export const RULE_IDS = Object.freeze(['starter.deny', 'device_registered', 'step_up_required', 'resource_zone']);
 
 const REQUEST_FIELDS = new Set([
@@ -36,8 +34,7 @@ function connectionInputIsValid(request) {
     && Number.isInteger(event.count) && event.count >= 0);
 }
 
-export function createDecider(zones) {
-  return async function decide(request) {
+export async function decide(request) {
   if (request.deviceRegistered !== true) {
     return {
       schema: 'aleph.decision.v1',
@@ -56,16 +53,21 @@ export function createDecider(zones) {
       ruleIds: ['starter.deny'],
     };
   }
-  const collection = request.service === 'notes' && request.method === 'GET'
-    && request.path === '/notes' && request.route === 'GET /notes';
-  const base = request.service === 'notes' ? '/notes/' : request.service === 'notices' ? '/notices/' : null;
-  const id = base && typeof request.path === 'string' && request.path.startsWith(base)
-    ? request.path.slice(base.length) : '';
-  const validId = /^[A-Za-z0-9_-]+$/.test(id) && !['export', 'import', 'search', 'admin'].includes(id);
-  const single = base && validId
-    && request.route === `${request.method} ${base}:id`
-    && (request.service === 'notes' ? ['GET', 'PUT'].includes(request.method) : request.method === 'PUT');
-  if ((collection || single) && hasZoneAccess(request, zones)) {
+  // 구역은 정확한 엔진/API 경로로 구분합니다. 소유자는 최종 API에서 검사합니다.
+  const routes = {
+    'GET /notes': /^\/notes$/,
+    'GET /notes/:id': /^\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+    'PUT /notes/:id': /^\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+    'GET /api/my/notes': /^\/api\/my\/notes$/,
+    'GET /api/notes/:id': /^\/api\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+    'PUT /api/notes/:id': /^\/api\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+  };
+  const pattern = routes[request.route];
+  const inNoteZone = request.service === 'notes'
+    && typeof request.route === 'string' && request.route.startsWith(`${request.method} `)
+    && Object.hasOwn(routes, request.route) && pattern.test(request.path)
+    && request.queryLength === 0;
+  if (inNoteZone) {
     // 학습용 복합 기준: 가상 이른 시각 + 낯선 네트워크 + 최근 다량 행동.
     // 지역은 이 결정에 쓰지 않으며 실제 접속 위치를 추정하지 않습니다.
     const unusualHour = request.signals.hour >= 0 && request.signals.hour < 6;
@@ -99,11 +101,6 @@ export function createDecider(zones) {
     requestId: request.requestId,
     decision: 'deny',
     reasonCode: 'starter_not_ready',
-    ruleIds: ['resource_zone'],
+    ruleIds: [RULE_IDS[0]],
   };
-  };
-}
-
-export async function decide(request) {
-  return createDecider(serverZones())(request);
 }

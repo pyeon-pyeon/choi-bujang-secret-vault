@@ -51,12 +51,10 @@ export async function checkDecider({ decide, ruleIds }) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const { RULE_IDS } = await import('../src/decider.mjs');
-    const { fixtureDecider } = await import('./zone-fixtures.mjs');
-    const decide = fixtureDecider();
+    const { decide, RULE_IDS } = await import('../src/decider.mjs');
     const results = await checkDecider({ decide, ruleIds: RULE_IDS });
     for (const item of results) process.stdout.write(`${item.passed ? '통과' : '확인 필요'} · ${item.name}\n`);
-    process.stdout.write('이 명령은 가상 요청과 가상 서버 권한 목록으로 연습하며 운영 설정·심판 통과 증거가 아닙니다.\n');
+    process.stdout.write('이 명령은 가상 요청으로 연습하며 심판 통과 증거가 아닙니다.\n');
     if (results.some(item => !item.passed)) process.exitCode = 1;
   } catch (error) {
     process.stderr.write(`판정기 연습 첫 오류: ${error.message}\n`);

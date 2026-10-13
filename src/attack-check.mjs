@@ -4,23 +4,21 @@ import { execFileSync } from 'node:child_process';
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
   if (config.step === 8) {
-    const { fixtureDecider } = await import('../scripts/zone-fixtures.mjs');
+    const { decide } = await import('./decider.mjs');
     const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
-    const decide = fixtureDecider();
     const { normal } = fixtureRequests();
     const checks = [
-      ['own_note_read', {}, 'allow'],
-      ['own_note_update', { method: 'PUT', route: 'PUT /notes/:id' }, 'allow'],
-      ['other_note_read', { subjectId: 'other_fixture' }, 'deny'],
-      ['other_note_update', { subjectId: 'other_fixture', method: 'PUT', route: 'PUT /notes/:id' }, 'deny'],
-      ['student_notice_update', { service: 'notices', method: 'PUT', path: '/notices/demo', route: 'PUT /notices/:id' }, 'deny'],
-      ['instructor_notice_update', { subjectId: 'teacher_fixture', service: 'notices', method: 'PUT', path: '/notices/demo', route: 'PUT /notices/:id' }, 'allow'],
+      ['own_api_route', { path: '/api/notes/demo', route: 'GET /api/notes/:id' }, 'allow'],
+      ['own_api_update_route', { method: 'PUT', path: '/api/notes/demo', route: 'PUT /api/notes/:id' }, 'allow'],
+      ['function_route', { path: '/api/notes/export', route: 'GET /api/notes/:id' }, 'deny'],
+      ['other_zone_list', { path: '/api/notes', route: 'GET /api/notes' }, 'deny'],
+      ['student_notice_write', { service: 'notices', method: 'PUT', path: '/api/notices/demo', route: 'PUT /api/notices/:id' }, 'deny'],
     ];
     const attempts = [];
     for (const [attackId, patch, expected] of checks) {
       const result = await decide({ ...normal, ...patch });
-      attempts.push({ attackId, expected: `가상 서버 권한 목록: ${expected}`,
-        observed: `로컬 가상 판정 ${result.decision}·${result.reasonCode}; 실제 운영 권한·API 실측 미실행` });
+      attempts.push({ attackId, expected: `가상 경로 판정 ${expected}; 소유자 실측과 별도`,
+        observed: `로컬 가상 판정 ${result.decision}·${result.reasonCode}; 실제 A/B API 및 심판 검증 미실행` });
     }
     return attempts;
   }
