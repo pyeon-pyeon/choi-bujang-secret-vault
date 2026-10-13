@@ -89,6 +89,7 @@ function render(session) {
   currentSession = session;
   signedIn = Boolean(session?.signedIn);
   noteForm.hidden = true;
+  window.dispatchEvent(new CustomEvent('vault-access-state', { detail: { approved: false } }));
   requestDevice.hidden = !signedIn;
   refreshDevice.hidden = !signedIn;
   if (!signedIn) deviceStatus.textContent = '기기 승인 상태: 로그인 후 확인합니다.';
@@ -176,11 +177,13 @@ async function checkDevice(method = 'GET') {
     const approved = data.status === 'approved';
     requestDevice.hidden = data.status !== 'not_requested';
     noteForm.hidden = !approved;
+    window.dispatchEvent(new CustomEvent('vault-access-state', { detail: { approved } }));
     if (!approved) list.replaceChildren();
     return approved;
   } catch {
     if (session === currentSession) {
       noteForm.hidden = true; list.replaceChildren();
+      window.dispatchEvent(new CustomEvent('vault-access-state', { detail: { approved: false } }));
       deviceStatus.textContent = '서버 승인 상태를 확인할 수 없습니다. 자료는 열지 않습니다.';
     }
     return false;

@@ -1,5 +1,5 @@
 {
-  "step": 11,
+  "step": 12,
   "repoUrl": "https://github.com/pyeon-pyeon/choi-bujang-secret-vault",
   "publicAppUrl": "https://choi-bujang-secret-vault-xtz6.vercel.app",
   "sampleMarker": "SAMPLE_NOTE_1",
@@ -19,7 +19,8 @@
     "GET /api/my/notes",
     "POST /api/restore/:noteId",
     "GET /api/device",
-    "POST /api/device"
+    "POST /api/device",
+    "GET /api/operations"
   ],
   "originalApiUrl": "https://bggmpuwdrkrqqglduvlp.supabase.co/rest/v1/learning_notes",
   "restoreRoute": "/api/restore/:noteId"

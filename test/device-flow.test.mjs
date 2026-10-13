@@ -81,7 +81,7 @@ test('화면도 승인 전 메모 요청·표시 없이 대기하고 승인 조�
   const document = { hidden: false,
     querySelector(selector) { if (!elements.has(selector)) elements.set(selector, new Element()); return elements.get(selector); },
     createElement: () => new Element() };
-  const context = vm.createContext({ document, setInterval() {}, window: {}, fetch: async path => {
+  const context = vm.createContext({ document, setInterval() {}, window: { dispatchEvent() {} }, CustomEvent: class {}, fetch: async path => {
     if (path === '/api/auth') return { ok: true, json: async () => ({ signedIn: true }) };
     if (path === '/api/device') return { ok: true, json: async () => ({ status: state }) };
     if (path === '/api/notes') { noteRequests++; return { ok: true, json: async () => [{ id: 'demo', title: '가상 제목', body: '가상 내용' }] }; }

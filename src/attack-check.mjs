@@ -3,6 +3,19 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 12) {
+    let passed = false;
+    try {
+      execFileSync(process.execPath, ['--test', 'test/operations-summary.test.mjs', 'test/device-flow.test.mjs'], {
+        cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000,
+      });
+      passed = true;
+    } catch { /* 원본 응답·인증 정보는 제출 결과에 넣지 않습니다. */ }
+    return [{ attackId: 'operations_summary_fixture',
+      expected: '모의 API: 비로그인·미승인 거부, 승인 뒤 가린 기록과 요약 건수 일치',
+      observed: passed ? '로컬 모의 요약·기기 승인 시험 통과; 실제 배포 API·41종·회수·복구 실측 미실행'
+        : '로컬 모의 시험 실패; 실제 API·41종 실측 미실행' }];
+  }
   if (config.step === 11) {
     let passed = false;
     try {
