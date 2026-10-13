@@ -1,5 +1,20 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 8단계 권한 저장소 보완 (미커밋·DB 미적용)
+
+이하 권한 저장소 미구현 설명은 이전 기록입니다. 현재 src/zone-policy.mjs가 서버 DB의 vault_identity_bindings에서 class_id·project_id·subject_id와 auth_user_id 연결을 조회합니다. 메모 단건 GET·PUT은 learning_notes.owner_id와 연결된 계정을 비교하고, 공지 PUT은 vault_staff_roles의 instructor 및 공지의 반·프로젝트를 확인합니다. 없는 연결·권한·경로·DB 오류는 기본 거부합니다. 권한 정보는 요청 본문이나 role에서 가져오지 않습니다. 기존 기기와 재확인 규칙을 유지합니다. 소유자 정보를 임의 생성하는 운영 fallback은 없습니다.
+
+api/notices/[id].js는 기존 검증 도우미로 로그인 신원을 확인하고 저장된 강사 권한과 반·프로젝트 범위를 다시 확인합니다. 학생은 403, 강사는 해당 구역의 공지만 수정할 수 있습니다. 메모 API와 자료·주소·메뉴는 보존하며 추가한 API는 PUT /api/notices/:id입니다.
+
+적용 순서:
+1. supabase/step8-zone-permissions.sql을 검토해 SQL Editor에서 실행합니다. 새 권한·공지 테이블만 만들며 기존 메모 행을 수정하지 않습니다. 브라우저 역할에는 직접 접근 권한을 주지 않습니다.
+2. 관리자가 검증된 엔진 subjectId·classId·projectId와 같은 계정의 Supabase UUID를 확인해 vault_identity_bindings에 등록합니다. 요청자가 직접 주장한 값만으로 연결하지 않습니다. 현재 프로젝트에는 이 양쪽 신원을 검증하는 자동 등록 흐름은 없으며 검증 후 관리자 등록이 필요합니다.
+3. 강사 계정만 vault_staff_roles에 instructor로 등록합니다. 공지는 learning_notices에 같은 class_id·project_id로 등록합니다. 자동 예제 사용자·권한은 생성하지 않습니다.
+4. 공지 서버 함수에 ZTNA_CLASS_ID·ZTNA_PROJECT_ID를 엔진 등록값으로 설정합니다. 기존 SUPABASE_URL·SUPABASE_SECRET_KEY는 서버 환경에서 유지하며 값을 답변이나 Git에 넣지 않습니다. 판정기 실행 환경에도 서버 DB 환경 설정이 필요합니다.
+5. `node --test test/resource-zone.test.mjs`와 `npm run decider:test`로 모의 권한 저장소 시험을 실행합니다. 본인 GET·PUT 허용, B의 A GET·PUT 거부, 학생 공지 PUT 거부, 강사 공지 PUT 허용을 확인했습니다. 로컬 시험은 운영에 연결된 판정기의 실제 권한 시험이 아닙니다.
+
+SQL 적용·실제 사용자 연결 등록·배포·심판 재채점은 미실행입니다. DB 연결이 없거나 등록이 없으면 운영 판정기는 정상 요청도 거부하므로 등록 전 배포를 완료 상태로 간주하지 않습니다. 새 reasonCode는 등록부를 추정해 추가하지 않았으며 권한 거부는 기존 starter_not_ready와 resource_zone 규칙 ID로 구분합니다.
+
 ## 8단계 저장점: 자원 구분·정확한 경로 검사 (권한 계약 일부 미구현)
 
 단건 GET 보완: 메모 API의 기존 id·owner_id DB 필터에 더해 반환된 행의 owner_id도 검증된 사용자 ID와 다시 비교합니다. 불일치는 본문 없이 404이며 정상 응답은 {id,title,body}입니다. 정상 접근을 모두 막던 임시 변경은 제거하고 기존 기기·재확인 규칙을 유지했습니다. 모의 API에서 A 본인 GET 200, B 타인 GET 404, 잘못 반환된 타인 행도 404를 확인했습니다. 실제 배포의 실패 원인과 재채점 해결 여부는 미확인입니다. 강사 권한 계약·공지 API 미구현 제한은 그대로 남습니다.

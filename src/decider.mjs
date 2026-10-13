@@ -1,8 +1,9 @@
 // ALEPH SDP 엔진이 확인한 요청만 받는 학생 판정기 시작점입니다.
 // 등록 기기의 자료실 읽기만 허용하고 나머지는 기존 기본 거부를 유지합니다.
 // 요청 본문의 userId, role, 기기 키, 토큰을 별도로 믿거나 저장하지 마세요.
-import { identifyResource, RESOURCE_IDS } from './resources.mjs';
-export const RULE_IDS = Object.freeze(['starter.deny', 'device_registered', 'step_up_required']);
+import { identifyResource } from './resources.mjs';
+import { authorizeZone } from './zone-policy.mjs';
+export const RULE_IDS = Object.freeze(['starter.deny', 'device_registered', 'step_up_required', 'resource_zone']);
 
 const REQUEST_FIELDS = new Set([
   'schema', 'requestId', 'classId', 'projectId', 'subjectId', 'deviceId',
@@ -35,60 +36,68 @@ function connectionInputIsValid(request) {
     && Number.isInteger(event.count) && event.count >= 0);
 }
 
-export async function decide(request) {
-  if (request.deviceRegistered !== true) {
-    return {
-      schema: 'aleph.decision.v1',
-      requestId: request.requestId,
-      decision: 'deny',
-      reasonCode: 'device_not_registered',
-      ruleIds: ['device_registered'],
-    };
-  }
-  if (!connectionInputIsValid(request)) {
-    return {
-      schema: 'aleph.decision.v1',
-      requestId: request.requestId,
-      decision: 'deny',
-      reasonCode: 'starter_not_ready',
-      ruleIds: ['starter.deny'],
-    };
-  }
-  if (identifyResource(request) === RESOURCE_IDS.notes && request.method === 'GET'
-      && ['GET /notes', 'GET /notes/:id'].includes(request.route)) {
-    // 학습용 복합 기준: 가상 이른 시각 + 낯선 네트워크 + 최근 다량 행동.
-    // 지역은 이 결정에 쓰지 않으며 실제 접속 위치를 추정하지 않습니다.
-    const unusualHour = request.signals.hour >= 0 && request.signals.hour < 6;
-    const unusualNetwork = request.signals.network === 'unusual';
-    const heavyActivity = request.recentEvents.some(event =>
-      event.kind === 'risk_signal' && event.ageSeconds <= 300 && event.count >= 20);
-    const compoundRisk = request.signals.source === 'judge_fixture'
-      && unusualHour && unusualNetwork && heavyActivity;
-    const recentlyVerified = request.stepUp?.verified === true
-      && Number.isInteger(request.stepUp.authAgeSeconds)
-      && request.stepUp.authAgeSeconds >= 0 && request.stepUp.authAgeSeconds <= 900;
-    if (compoundRisk && !recentlyVerified) {
+export function createDecider(checkZone = authorizeZone) {
+  return async function decide(request) {
+    if (request.deviceRegistered !== true) {
       return {
         schema: 'aleph.decision.v1',
         requestId: request.requestId,
-        decision: 'step_up',
-        reasonCode: 'step_up_required',
-        ruleIds: ['device_registered', 'step_up_required'],
+        decision: 'deny',
+        reasonCode: 'device_not_registered',
+        ruleIds: ['device_registered'],
+      };
+    }
+    if (!connectionInputIsValid(request)) {
+      return {
+        schema: 'aleph.decision.v1',
+        requestId: request.requestId,
+        decision: 'deny',
+        reasonCode: 'starter_not_ready',
+        ruleIds: ['starter.deny'],
+      };
+    }
+    const resource = identifyResource(request);
+    let authorized = false;
+    if (resource !== null) {
+      try { authorized = (await checkZone(request)) === true; } catch { authorized = false; }
+    }
+    if (authorized) {
+      // 학습용 복합 기준: 가상 이른 시각 + 낯선 네트워크 + 최근 다량 행동.
+      // 지역은 이 결정에 쓰지 않으며 실제 접속 위치를 추정하지 않습니다.
+      const unusualHour = request.signals.hour >= 0 && request.signals.hour < 6;
+      const unusualNetwork = request.signals.network === 'unusual';
+      const heavyActivity = request.recentEvents.some(event =>
+        event.kind === 'risk_signal' && event.ageSeconds <= 300 && event.count >= 20);
+      const compoundRisk = request.signals.source === 'judge_fixture'
+        && unusualHour && unusualNetwork && heavyActivity;
+      const recentlyVerified = request.stepUp?.verified === true
+        && Number.isInteger(request.stepUp.authAgeSeconds)
+        && request.stepUp.authAgeSeconds >= 0 && request.stepUp.authAgeSeconds <= 900;
+      if (compoundRisk && !recentlyVerified) {
+        return {
+          schema: 'aleph.decision.v1',
+          requestId: request.requestId,
+          decision: 'step_up',
+          reasonCode: 'step_up_required',
+          ruleIds: ['device_registered', 'step_up_required'],
+        };
+      }
+      return {
+        schema: 'aleph.decision.v1',
+        requestId: request.requestId,
+        decision: 'allow',
+        reasonCode: 'approved',
+        ruleIds: ['device_registered', 'resource_zone'],
       };
     }
     return {
       schema: 'aleph.decision.v1',
       requestId: request.requestId,
-      decision: 'allow',
-      reasonCode: 'approved',
-      ruleIds: ['device_registered'],
+      decision: 'deny',
+      reasonCode: 'starter_not_ready',
+      ruleIds: resource === null ? ['starter.deny'] : ['resource_zone'],
     };
-  }
-  return {
-    schema: 'aleph.decision.v1',
-    requestId: request.requestId,
-    decision: 'deny',
-    reasonCode: 'starter_not_ready',
-    ruleIds: [RULE_IDS[0]],
-  };
+};
 }
+
+export const decide = createDecider();
