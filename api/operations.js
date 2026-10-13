@@ -30,9 +30,7 @@ export default async function handler(request, response) {
     if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
     const client = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
-    const headers = {};
-    if (request.headers?.cookie) headers.cookie = request.headers.cookie;
-    if (request.headers?.authorization) headers.authorization = request.headers.authorization;
-    return response.status(200).json(await readOperationsSummary({ config, headers }));
+    // 묶음과 같은 비로그인 읽기 점검만 실행합니다. 세션은 전달하지 않습니다.
+    return response.status(200).json(await readOperationsSummary({ config }));
   } catch { return response.status(503).json({ error: 'SUMMARY_UNAVAILABLE' }); }
 }

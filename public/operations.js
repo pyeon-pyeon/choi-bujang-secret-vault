@@ -50,14 +50,14 @@ async function loadSummary() {
     const api = section('실제 API 확인', `확인 일치 ${checks.passed}건 / 불일치 ${checks.failed}건 / 미실행 ${checks.notRun}건. 공식 41종 완료 수가 아닙니다.`);
     const table = document.createElement('table');
     const header = document.createElement('tr');
-    for (const label of ['요청', '기대 결과', '실제 HTTP', '판정', '서버 요청 ID', '확인 시각']) {
+    for (const label of ['점검 ID', '요청', '기대 결과', '실제 HTTP', '판정', '서버 요청 ID', '확인 시각']) {
       const cell = document.createElement('th'); cell.textContent = label; header.append(cell);
     }
     table.append(header);
     for (const row of checks.records) {
       if (!['passed', 'failed', 'not_run'].includes(row.status)) throw new Error('invalid_api_record');
       const line = document.createElement('tr');
-      for (const value of [row.path ? `${row.method} ${row.path}` : row.testId, row.expected,
+      for (const value of [row.attackId, row.path ? `${row.method} ${row.path}` : '미실행', row.expected,
         row.httpStatus ?? '미실행', row.status, row.requestId ?? '미제공', row.checkedAt ?? '미실행']) {
         const cell = document.createElement('td'); cell.textContent = String(value); line.append(cell);
       }
@@ -66,7 +66,7 @@ async function loadSummary() {
     api.append(table);
     content.replaceChildren(rules, detection, revocation, recovery, api, records);
     content.hidden = false; refresh.hidden = false;
-    status.textContent = '서버 확인 시각: ' + data.checkedAt + ' · 운영 실측과 가상 기록을 구분합니다.';
+    status.textContent = '이번 화면 확인 시각: ' + data.checkedAt + ' · 같은 표의 기록에서 집계합니다. 제출 묶음 실행과 시각이 다를 수 있습니다.';
   } catch {
     if (version !== revision) return;
     content.hidden = true; content.replaceChildren();

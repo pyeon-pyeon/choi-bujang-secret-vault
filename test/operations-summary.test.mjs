@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { summarizeOperations, readOperationsSummary, measureApiChecks } from '../src/operations-summary.mjs';
+import { API_CHECKS, toAttackAttempts } from '../src/api-checks.mjs';
 
 test('가린 기록과 합계 일치, 원문 제외, 실행 증거 없는 상태는 미확인', async () => {
   const result = { schema: 'aleph.xdr.result.v1', moduleKey: 'brute-force',
@@ -54,22 +55,68 @@ test('요약 API도 비로그인·미승인에서는 기록을 조회하지 않�
   assert.equal(summaryReads, 1);
 });
 
-test('실제 API 결과를 가려 집계하고 미실행을 분리하며 인증 값은 응답에서 제외', async () => {
+test('화면·묶음의 공통 기록과 수치 일치, GET만 실행, 비밀값·미실행 분리', async () => {
+  const config = { step: 12, publicAppUrl: 'https://fixture.vercel.app', repoUrl: 'https://github.com/fixture/vault' };
   const calls = [];
-  const result = await measureApiChecks({ config: { publicAppUrl: 'https://fixture.vercel.app' },
-    headers: { cookie: 'synthetic-cookie' }, fetcher: async (url, options) => {
-      calls.push({ path: url.pathname, headers: options.headers });
-      assert.equal(options.method, 'GET');
-      return { status: url.pathname === '/api/notes' ? 401 : 200, headers: { get: () => null },
-        json: async () => url.pathname === '/data.json' ? { notes: [] } : url.pathname === '/api/notes'
-          ? { error: 'LOGIN_REQUIRED' } : [{ id: 'fixture', title: 'synthetic-private-title', body: 'synthetic-private-body' }] };
-    } });
-  assert.equal(result.passed, 3); assert.equal(result.failed, 0); assert.equal(result.notRun, 1);
-  assert.equal(calls[0].headers.cookie, undefined); assert.equal(calls[1].headers.cookie, undefined);
-  assert.equal(calls[2].headers.cookie, 'synthetic-cookie');
+  const result = await measureApiChecks({ config, fetcher: async (address, options) => {
+    assert.equal(typeof address, 'string');
+    const url = new URL(address);
+    calls.push({ path: url.pathname, headers: options.headers });
+    assert.equal(options.method, 'GET');
+    assert.equal(options.headers.cookie, undefined);
+    assert.equal(options.headers.authorization, undefined);
+    assert.equal(options.headers['x-aleph-attack-id'], API_CHECKS.find(c => c.path === url.pathname).attackId);
+    return { status: url.pathname.startsWith('/api/') ? 401 : 200, headers: { get: () => null },
+      json: async () => url.pathname === '/data.json' ? { notes: [] } : url.pathname === '/aleph.json'
+        ? { step: 12, repoUrl: config.repoUrl, token: 'synthetic-private-token' }
+        : { error: 'LOGIN_REQUIRED' } };
+  } });
+  assert.equal(result.passed, 4); assert.equal(result.failed, 0); assert.equal(result.notRun, 2);
+  assert.equal(calls.length, 4);
   assert(!JSON.stringify(result).includes('synthetic-'));
   assert.equal(result.records[0].requestId, null);
-  const unavailable = await measureApiChecks({ config: { publicAppUrl: 'https://fixture.vercel.app' },
-    fetcher: async () => { throw new Error('offline'); } });
-  assert.equal(unavailable.notRun, 4); assert.equal(unavailable.passed, 0);
+  const attempts = toAttackAttempts(result);
+  assert.deepEqual(attempts, result.records.map(({ attackId, expected, observed }) => ({ attackId, expected, observed })));
+  assert.equal(attempts.filter(a => a.observed === 'not_run').length, result.notRun);
+  const unavailable = await measureApiChecks({ config, fetcher: async () => { throw new Error('offline'); } });
+  assert.equal(unavailable.notRun, 6); assert.equal(unavailable.passed, 0);
+  const invalid = structuredClone(result); invalid.records[0].checkedAt = null;
+  assert.throws(() => toAttackAttempts(invalid), /missing_evidence/);
+});
+
+test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응답은 숨김', async () => {
+  class Element {
+    hidden = false; textContent = ''; children = []; listeners = {};
+    append(...nodes) { this.children.push(...nodes); }
+    replaceChildren(...nodes) { this.children = nodes; }
+    addEventListener(name, callback) { this.listeners[name] = callback; }
+  }
+  const elements = new Map(['#operations-status', '#operations-data', '#operations-refresh'].map(id => [id, new Element()]));
+  const listeners = {};
+  const config = { step: 12, publicAppUrl: 'https://fixture.vercel.app', repoUrl: 'https://github.com/fixture/vault' };
+  const apiChecks = await measureApiChecks({ config, fetcher: async address => {
+    const path = new URL(address).pathname;
+    return { status: path.startsWith('/api/') ? 401 : 200,
+      json: async () => path === '/data.json' ? { notes: [] } : path === '/aleph.json'
+        ? { step: 12, repoUrl: config.repoUrl } : { error: 'LOGIN_REQUIRED' } };
+  } });
+  const summary = { ...summarizeOperations(['device_registered'], []), apiChecks };
+  const context = vm.createContext({
+    document: { querySelector: id => elements.get(id), createElement: () => new Element() },
+    window: { addEventListener: (name, callback) => { listeners[name] = callback; } },
+    fetch: async () => ({ ok: true, json: async () => summary }),
+  });
+  vm.runInContext(await readFile(new URL('../public/operations.js', import.meta.url), 'utf8'), context);
+  listeners['vault-access-state']({ detail: { approved: true } });
+  await new Promise(resolve => setImmediate(resolve));
+  const data = elements.get('#operations-data');
+  const text = node => [node.textContent, ...node.children.map(text)].join(' ');
+  assert.equal(data.hidden, false);
+  assert.match(text(data), /확인 일치 4건 \/ 불일치 0건 \/ 미실행 2건/);
+  for (const row of apiChecks.records) assert.ok(text(data).includes(row.attackId));
+  assert.match(text(data), /검증된 기록이 없어 건수 미확인/);
+  summary.apiChecks.passed = 99;
+  elements.get('#operations-refresh').listeners.click();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(data.hidden, true); assert.equal(data.children.length, 0);
 });
