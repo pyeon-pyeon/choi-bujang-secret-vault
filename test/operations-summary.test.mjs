@@ -1,4 +1,3 @@
-import { readDefenseTestResults } from '../src/defense-test-results.mjs';
 import { randomUUID } from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -101,7 +100,7 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
         ? { step: 12, repoUrl: config.repoUrl } : { error: 'LOGIN_REQUIRED' } };
   } });
   const archive = { records: apiChecks.records.map(row => ({ ...row, status: row.status === 'not_run' ? 'not_run' : 'recorded' })),
-    count: 6, recordedCount: 4, notRun: 2, coverage: readDefenseTestResults() };
+    count: 6, recordedCount: 4, notRun: 2, coverage: { status: 'not_run', blocked: null, allowed: null } };
   const summary = { ...summarizeOperations(['device_registered'], []), apiChecks: archive };
   const context = vm.createContext({
     document: { querySelector: id => elements.get(id), createElement: () => new Element() },
@@ -114,8 +113,7 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
   const data = elements.get('#operations-data');
   const text = node => [node.textContent, ...node.children.map(text)].join(' ');
   assert.equal(data.hidden, false);
-  assert.match(text(data), /41종 \/ 실행 0건 \/ 미실행 41건 \/ 실제 막음 0건/);
-  for (const row of archive.coverage.records) assert.ok(text(data).includes(row.attackId));
+  assert.match(text(data), /공식 41종: 미실행/);
   assert.ok(!text(data).includes('통과 4'));
   assert.ok(!text(data).includes('block 18'));
   for (const row of apiChecks.records) assert.ok(text(data).includes(row.attackId));
@@ -129,8 +127,8 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
 test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실행 없이 미실행 반환', async () => {
   const snapshot = readApiCheckSnapshot();
   assert.equal(snapshot.coverage.status, 'not_run');
-  assert.equal(snapshot.coverage.blocked, 0);
-  assert.equal(snapshot.coverage.allowed, 0);
+  assert.equal(snapshot.coverage.blocked, null);
+  assert.equal(snapshot.coverage.allowed, null);
   assert.equal(snapshot.recordedCount, snapshot.records.filter(row => row.status === 'recorded').length);
   assert.equal(snapshot.passed, undefined);
   const original = globalThis.fetch;

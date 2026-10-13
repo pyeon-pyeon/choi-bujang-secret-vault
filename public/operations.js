@@ -47,8 +47,10 @@ async function loadSummary() {
     const checks = data.apiChecks;
     if (!Array.isArray(checks?.records) || checks.count !== checks.records.length
         || checks.recordedCount !== checks.records.filter(row => row.status === 'recorded').length
-        || checks.notRun !== checks.records.filter(row => row.status === 'not_run').length) throw new Error('api_count_mismatch');
-    const api = section('보관된 실제 API 응답 기록', '아래는 별도 GET 확인에서 보관한 같은 기록입니다. 제공 시험의 결과는 아래 시험 표와 집계에서 별도로 확인합니다.');
+        || checks.notRun !== checks.records.filter(row => row.status === 'not_run').length
+        || checks.coverage?.status !== 'not_run' || checks.coverage.blocked !== null
+        || checks.coverage.allowed !== null) throw new Error('api_count_mismatch');
+    const api = section('보관된 실제 API 응답 기록', '아래 표는 별도 GET 확인에서 보관한 같은 기록입니다. 공식 41종: 미실행·목록 미확보. 막음·허용 총계는 미확인입니다.');
     api.append(section('기록 대상 배포 커밋', checks.deploymentCommit ?? '미확인'));
     const table = document.createElement('table');
     const header = document.createElement('tr');
@@ -66,40 +68,7 @@ async function loadSummary() {
       table.append(line);
     }
     api.append(table);
-    const coverage = checks.coverage;
-    const tests = section('제공 시험 결과', '미실행은 막음·허용·통과에 포함하지 않습니다. 로컬 fixture와 위 HTTP 확인은 별도 기록입니다.');
-    if (coverage?.catalogAvailable === true) {
-      if (!Array.isArray(coverage.records) || coverage.expectedTestCount !== coverage.records.length
-          || new Set(coverage.records.map(row => row.attackId)).size !== coverage.records.length) throw new Error('invalid_test_catalog');
-      const executed = coverage.records.filter(row => row.status === 'executed');
-      const unrun = coverage.records.filter(row => row.status === 'not_run');
-      if (executed.length + unrun.length !== coverage.records.length
-          || unrun.some(row => row.outcome !== 'not_run' || row.actual !== null || row.requestId !== null
-            || row.checkedAt !== null || row.assertionPassed !== null)
-          || coverage.executed !== executed.length || coverage.notRun !== unrun.length
-          || coverage.blocked !== executed.filter(row => row.outcome === 'blocked').length
-          || coverage.allowed !== executed.filter(row => row.outcome === 'allowed').length
-          || coverage.passed !== executed.filter(row => row.assertionPassed === true).length) throw new Error('defense_count_mismatch');
-      tests.append(section('목록과 실행 기록에서 계산한 집계',
-        `${coverage.expectedTestCount}종 / 실행 ${coverage.executed}건 / 미실행 ${coverage.notRun}건 / 실제 막음 ${coverage.blocked}건 / 실제 허용 ${coverage.allowed}건 / 기대 일치 ${coverage.passed}건`));
-      const matrix = document.createElement('table');
-      const heading = document.createElement('tr');
-      for (const label of ['시험 ID', '단계', '기대 결과', '실제 결과', '요청 ID', '확인 시각']) {
-        const cell = document.createElement('th'); cell.textContent = label; heading.append(cell);
-      }
-      matrix.append(heading);
-      for (const row of coverage.records) {
-        const line = document.createElement('tr');
-        const actual = row.status === 'not_run' ? '미실행'
-          : `${row.outcome} / HTTP ${row.actual?.httpStatus ?? '해당 없음'} / ${row.actual?.decision ?? '해당 없음'}`;
-        for (const value of [row.attackId, row.step, row.expected, actual, row.requestId ?? '미실행', row.checkedAt ?? '미실행']) {
-          const cell = document.createElement('td'); cell.textContent = String(value); line.append(cell);
-        }
-        matrix.append(line);
-      }
-      tests.append(matrix);
-    } else tests.append(section('제공 목록 미확인', '시험 목록을 검증하지 못해 수치를 표시하지 않습니다.'));
-    content.replaceChildren(rules, detection, revocation, recovery, api, tests, records);
+    content.replaceChildren(rules, detection, revocation, recovery, api, records);
     content.hidden = false; refresh.hidden = false;
     status.textContent = '기록 조회 시각: ' + data.checkedAt + ' · 각 실제 확인 시각은 표에 표시합니다. 새 시험을 실행한 시각이 아닙니다.';
   } catch {
