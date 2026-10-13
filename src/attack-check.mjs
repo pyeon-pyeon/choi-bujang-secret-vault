@@ -3,6 +3,24 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 6) {
+    const { decide } = await import('./decider.mjs');
+    const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
+    const { normal } = fixtureRequests();
+    const attempts = [];
+    for (const [attackId, registered, expected] of [
+      ['registered_device_fixture', true, '로컬 가상 등록 기기 읽기: allow'],
+      ['unregistered_device_fixture', false, '로컬 가상 미등록 기기: deny·device_not_registered'],
+      ['missing_device_registration_fixture', undefined, '로컬 가상 등록값 누락: deny·device_not_registered'],
+    ]) {
+      const request = { ...normal, deviceRegistered: registered };
+      if (registered === undefined) delete request.deviceRegistered;
+      const response = await decide(request);
+      attempts.push({ attackId, expected,
+        observed: `로컬 가상 요청: ${response.decision}·${response.reasonCode}; 실제 심판 공격 미실행` });
+    }
+    return attempts;
+  }
   if (![1, 2, 3, 4, 5].includes(config.step)) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
