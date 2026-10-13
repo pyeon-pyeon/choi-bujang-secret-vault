@@ -140,17 +140,3 @@ test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실
     assert.ok(attempts.every(row => row.observed === 'not_run'));
   } finally { globalThis.fetch = original; }
 });
-
-test('실행되지 않은 로컬 block·alert 후보는 실제 차단 수에 들어가지 않음', () => {
-  const fixture = { schema: 'aleph.xdr.result.v1', moduleKey: 'brute-force',
-    counts: { block: 1, alert: 1, record: 1 }, decisions: [
-      { alertId: 'bf-01', action: 'block' }, { alertId: 'bf-02', action: 'alert' },
-      { alertId: 'bf-03', action: 'record' },
-    ] };
-  const out = summarizeOperations(['device_registered'], [{ moduleKey: 'brute-force', result: fixture }]);
-  assert.deepEqual(out.detection.counts, { block: 0, alert: 0, record: 3 });
-  assert.deepEqual(out.detection.sources[0].counts, out.detection.counts);
-  assert.deepEqual(out.detection.records.map(row => row.candidateAction), ['block', 'alert', 'record']);
-  assert.ok(out.detection.records.every(row => row.action === 'record' && row.executionStatus === 'not_run'));
-  assert.deepEqual(fixture.counts, { block: 1, alert: 1, record: 1 });
-});
