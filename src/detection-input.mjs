@@ -15,15 +15,6 @@ export function readDetectionEvents(events) {
       // 오류에도 원문이나 식별자를 포함하지 않습니다.
       throw new TypeError('invalid_detection_event');
     }
-    const cleaned = { at, method, identity: { sub } };
-    // 현재 엔진의 실측 네트워크 계약은 없습니다. 명시된 가상 신호만 구분합니다.
-    if (event?.signals?.source === 'judge_fixture'
-        && ['usual', 'unusual', 'unknown'].includes(event.signals.network)) {
-      cleaned.signals = { source: 'judge_fixture', network: event.signals.network };
-      if (typeof event.deviceId === 'string' && /^[0-9a-f]{16}$/.test(event.deviceId)) {
-        cleaned.deviceId = event.deviceId;
-      }
-    }
-    return cleaned;
+    return { at, method, identity: { sub } };
   });
 }

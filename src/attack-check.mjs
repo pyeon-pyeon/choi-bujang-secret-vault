@@ -5,23 +5,22 @@ import { execFileSync } from 'node:child_process';
 export async function runAttackChecks(config) {
   if (config.step === 9) {
     const { detect } = await import('./detect.mjs');
-    const reads = (count, network, device = 'a'.repeat(16)) =>
+    const reads = (count, subject = 'learner_fixture', interval = 2000) =>
       Array.from({ length: count }, (_, i) => ({
-        at: new Date(Date.UTC(2026, 9, 1) + i * 2000).toISOString(),
-        method: 'GET', identity: { sub: 'learner_fixture' }, deviceId: device,
-        signals: { source: 'judge_fixture', network },
+        at: new Date(Date.UTC(2026, 9, 1) + i * interval).toISOString(),
+        method: 'GET', identity: { sub: subject },
       }));
     const checks = [
-      ['normal_detection_fixture', reads(30, 'usual'), 'observe'],
-      ['compound_detection_fixture', reads(121, 'unusual'), 'propose_revocation'],
-      ['usual_network_fixture', reads(200, 'usual'), 'observe'],
-      ['missing_device_fixture', reads(200, 'unusual').map(({ deviceId, ...event }) => event), 'observe'],
-      ['separate_devices_fixture', [...reads(100, 'unusual'), ...reads(100, 'unusual', 'b'.repeat(16))], 'observe'],
+      ['normal_detection_fixture', reads(30), 'observe'],
+      ['threshold_detection_fixture', reads(120), 'observe'],
+      ['burst_detection_fixture', reads(121), 'propose_revocation'],
+      ['separate_subjects_fixture', [...reads(100), ...reads(100, 'other_fixture')], 'observe'],
+      ['outside_window_fixture', reads(200, 'learner_fixture', 7000), 'observe'],
     ];
     return checks.map(([attackId, events, expected]) => {
       const result = detect(events);
-      return { attackId, expected: `확장 로컬 가상 계약: ${expected}`,
-        observed: `가상 탐지 ${result.action}; 이유 ${result.reasonCode ?? '없음'}; 단일 기기 대상 ${typeof result.deviceId === 'string'}; 실제 회수·시간 실측 미실행` };
+      return { attackId, expected: `제공 로컬 사건 계약: ${expected}`,
+        observed: `가상 탐지 ${result.action}; 이유 ${result.reasonCode ?? '없음'}; 계약상 대상 포함 ${typeof result.subject === 'string'}; 실제 회수·시간 미실측` };
     });
   }
   if (config.step === 8) {
