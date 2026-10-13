@@ -41,7 +41,7 @@ async function loadSummary() {
     const records = section('로컬 fixture 기록 · 실측 제외', '아래 값은 가상 경보 분류이며 운영 차단·41종 시험 결과가 아닙니다.');
     const list = document.createElement('ul');
     for (const row of data.detection.records) {
-      const item = document.createElement('li'); item.textContent = `${row.moduleKey} / ${row.alertId} / ${row.action} / 가상 기록`; list.append(item);
+      const item = document.createElement('li'); item.textContent = `${row.moduleKey} / ${row.alertId} / ${row.action} / 후보 분류 ${row.candidateAction ?? '미확인'} / 실행 ${row.executionStatus ?? '미확인'}`; list.append(item);
     }
     records.append(list);
     const checks = data.apiChecks;

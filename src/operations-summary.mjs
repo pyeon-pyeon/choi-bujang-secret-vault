@@ -17,12 +17,19 @@ export function summarizeOperations(ruleIds, datasets) {
     if (valid) for (const event of result.decisions) {
       if (typeof event?.alertId !== 'string' || !new RegExp(`^${prefix}-\\d+$`).test(event.alertId)
           || !Object.hasOwn(counts, event.action)) { valid = false; break; }
-      rows.push({ moduleKey, alertId: event.alertId, action: event.action, source: 'local_fixture' });
+      // 패턴 분류 block은 실행된 차단이 아닙니다. 원본 후보 분류는 별도 보존합니다.
+      rows.push({ moduleKey, alertId: event.alertId, action: 'record',
+        candidateAction: event.action, executionStatus: 'not_run', source: 'local_fixture' });
       counts[event.action]++;
     }
     if (valid && (new Set(rows.map(row => row.alertId)).size !== rows.length
         || Object.keys(counts).some(key => result.counts?.[key] !== counts[key]))) valid = false;
-    if (valid) { records.push(...rows); sources.push({ moduleKey, status: 'fixture_records_verified', counts }); }
+    if (valid) {
+      const appliedCounts = { block: 0, alert: 0, record: 0 };
+      for (const row of rows) appliedCounts[row.action]++;
+      records.push(...rows);
+      sources.push({ moduleKey, status: 'fixture_records_verified', counts: appliedCounts });
+    }
     else sources.push({ moduleKey, status: 'missing_or_invalid', counts: null });
   }
   const counts = { block: 0, alert: 0, record: 0 };
