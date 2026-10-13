@@ -3,6 +3,25 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 7) {
+    const { decide } = await import('./decider.mjs');
+    const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
+    const { normal, suspicious } = fixtureRequests();
+    const attempts = [];
+    for (const [attackId, request, expected] of [
+      ['normal_access_fixture', normal, '로컬 가상 정상 읽기: allow'],
+      ['compound_risk_fixture', suspicious, '로컬 가상 복합 이상: step_up·step_up_required'],
+      ['verified_step_up_fixture', { ...suspicious, stepUp: { verified: true, authAgeSeconds: 60 } },
+        '엔진 재확인 완료를 가정한 로컬 가상 요청: allow'],
+      ['unregistered_device_fixture', { ...normal, deviceRegistered: false },
+        '로컬 가상 미등록 기기: deny·device_not_registered'],
+    ]) {
+      const response = await decide(request);
+      attempts.push({ attackId, expected,
+        observed: `로컬 가상 요청: ${response.decision}·${response.reasonCode}; 실제 재로그인·자료 차단 미실행` });
+    }
+    return attempts;
+  }
   if (config.step === 6) {
     const { decide } = await import('./decider.mjs');
     const { fixtureRequests } = await import('../scripts/fixture-7.mjs');

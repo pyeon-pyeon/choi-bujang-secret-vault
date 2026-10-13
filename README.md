@@ -1,5 +1,13 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 7단계 저장점: 복합 가상 접속 재확인
+
+입력은 엔진 계약의 signals·at·recentEvents만 검사하며 클라이언트 헤더를 신뢰 정보로 승격하지 않습니다. source none의 지역·네트워크는 unknown 그대로 유지하고 judge_fixture는 가상 시험 정보로 구분합니다. 누락·형식 오류·불명확한 출처는 기본 거부합니다. 가상 신호에서 0~5시, unusual 네트워크, 최근 5분 내 risk_signal 20건 이상이 함께 나타나면 step_up·step_up_required를 반환합니다. 지역 하나만으로 차단하지 않으며 기존 등록 기기 규칙을 유지합니다.
+
+docs/DECIDER_REQUEST.md에는 엔진이 전달하는 stepUp {verified, authAgeSeconds} 계약이 있습니다. 하지만 이 폴더에서 같은 로그인 주체의 새 로그인 시각 검증, 재확인 전 실제 자료 차단, 새 요청 재판정을 수행하는 운영 엔진 연결은 확인하지 못했습니다. 이 필드만으로 실측 완료를 주장하지 않습니다. 실제 자료 API에 임의의 재인증 경로를 붙이지 않았습니다.
+
+`npm run decider:test`와 `npm run fixture:7`를 실행했습니다. 로컬 가상 결과는 정상 allow, 복합 사건 step_up, 엔진 검증 완료를 가정한 새 요청 allow이며 미등록 요청은 deny·device_not_registered입니다. 실제 재로그인 전 자료 차단·동일 계정 새 로그인 후 허용은 미실행입니다. 토큰 원문을 기록하지 않았습니다. 단계 설정은 7입니다. 배포 주소·발급자·메모 허용 경로·원본 API 주소는 기존 구현과 대조해 유지했으며 새 배포는 실행하지 않았습니다.
+
 ## 6단계 저장점: 등록 기기 읽기 규칙
 
 `src/decider.mjs`에 device_registered 규칙을 추가했습니다. 엔진의 deviceRegistered가 정확히 true이고 service가 notes, method가 GET, route가 GET /notes 또는 GET /notes/:id일 때만 읽기를 허용합니다. 미등록·누락·잘못된 등록값은 deny·device_not_registered로 거부하고, 다른 요청은 기존 starter.deny를 유지합니다. 인증서·CA·서명 키나 별도 접속 프로그램을 만들지 않았습니다. 단계 설정은 6입니다. 배포 주소·발급자·자료 CRUD 허용 경로·원본 API 주소는 기존 구현과 대조해 유지했습니다. 실제 배포와 미등록 기기 공격의 심판 검증은 미실행입니다.
