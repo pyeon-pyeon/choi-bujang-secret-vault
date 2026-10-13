@@ -55,12 +55,11 @@ export async function decide(request) {
   }
   // 구역은 정확한 엔진/API 경로로 구분합니다. 소유자는 최종 API에서 검사합니다.
   const routes = {
-    'GET /notes': /^\/notes$/,
-    'GET /notes/:id': /^\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
-    'PUT /notes/:id': /^\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+    'GET /notes/:id': /^\/notes\/(?!all$|list$|bulk$|export$|import$|admin$|search$|download$)[A-Za-z0-9_-]+$/i,
+    'PUT /notes/:id': /^\/notes\/(?!all$|list$|bulk$|export$|import$|admin$|search$|download$)[A-Za-z0-9_-]+$/i,
     'GET /api/my/notes': /^\/api\/my\/notes$/,
-    'GET /api/notes/:id': /^\/api\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
-    'PUT /api/notes/:id': /^\/api\/notes\/(?!export$|import$|admin$|search$)[A-Za-z0-9_-]+$/,
+    'GET /api/notes/:id': /^\/api\/notes\/(?!all$|list$|bulk$|export$|import$|admin$|search$|download$)[A-Za-z0-9_-]+$/i,
+    'PUT /api/notes/:id': /^\/api\/notes\/(?!all$|list$|bulk$|export$|import$|admin$|search$|download$)[A-Za-z0-9_-]+$/i,
   };
   const pattern = routes[request.route];
   const inNoteZone = request.service === 'notes'
