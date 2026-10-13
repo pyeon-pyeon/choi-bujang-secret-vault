@@ -3,6 +3,24 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 8) {
+    const { decide } = await import('./decider.mjs');
+    const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
+    const { normal } = fixtureRequests();
+    const attempts = [];
+    for (const [attackId, patch, expected] of [
+      ['normal_note_read_fixture', {}, '가상 등록 기기 메모 읽기: allow; 본인 소유자 실측 아님'],
+      ['function_path_fixture', { path: '/notes/export' }, '가상 기능 경로: deny'],
+      ['method_mismatch_fixture', { method: 'PUT' }, '가상 메서드·경로 불일치: deny'],
+      ['notice_update_fixture', { service: 'notices', method: 'PUT', path: '/notices/demo', route: 'PUT /notices/:id' },
+        '공지 수정은 확인된 권한 계약이 없으므로 기본 deny; 강사 허용 미구현'],
+    ]) {
+      const response = await decide({ ...normal, ...patch });
+      attempts.push({ attackId, expected,
+        observed: `로컬 가상 요청: ${response.decision}·${response.reasonCode}; 실제 A/B 소유자·강사 권한 시험 미실행` });
+    }
+    return attempts;
+  }
   if (config.step === 7) {
     const { decide } = await import('./decider.mjs');
     const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
