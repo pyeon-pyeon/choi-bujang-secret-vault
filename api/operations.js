@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { readFile } from 'node:fs/promises';
 import { createLoginVerifier } from '../src/verify-login.mjs';
@@ -7,6 +8,7 @@ import { readOperationsSummary } from '../src/operations-summary.mjs';
 const config = JSON.parse(await readFile(new URL('../aleph.config.json', import.meta.url), 'utf8'));
 let verifyLogin;
 export default async function handler(request, response) {
+  response.setHeader('X-Request-ID', randomUUID());
   response.setHeader('Cache-Control', 'no-store');
   if (request.method !== 'GET') {
     response.setHeader('Allow', 'GET');
@@ -30,6 +32,6 @@ export default async function handler(request, response) {
     if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
     const client = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
-    return response.status(200).json(await readOperationsSummary());
+    return response.status(200).json(await readOperationsSummary({ config, authHeaders: { authorization, cookie: request.headers?.cookie } }));
   } catch { return response.status(503).json({ error: 'SUMMARY_UNAVAILABLE' }); }
 }

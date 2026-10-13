@@ -4,38 +4,13 @@ import { execFileSync } from 'node:child_process';
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
   if (config.step === 12) {
-    const app = new URL(config.publicAppUrl);
-    if (app.protocol !== 'https:' || app.username || app.password || app.search || app.hash
-        || app.pathname !== '/' || !app.hostname.endsWith('.vercel.app')) {
-      throw new Error('공개 Vercel HTTPS 배포 주소를 확인해 주세요.');
-    }
-    const attempts = [];
-    for (const [path, attackId, expected] of [
-      ['/data.json', 'static_notes_empty', '공개 JSON은 HTTP 200이며 notes가 빈 배열'],
-      ['/aleph.json', 'deployment_identity', '배포 단계·저장소가 현재 설정과 일치'],
-      ['/api/notes', 'anonymous_notes_denied', '로그인 없는 목록 GET은 HTTP 401이며 자료 없음'],
-      ['/api/operations', 'anonymous_operations_denied', '로그인 없는 작전실 GET은 HTTP 401이며 기록 없음'],
-    ]) {
-      let observed = 'not_run';
-      try {
-        const response = await fetch(new URL(path, app), { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(10000) });
-        let data = null;
-        try { data = await response.json(); } catch { /* 원문은 출력하지 않습니다. */ }
-        if (path === '/data.json') {
-          observed = `HTTP ${response.status}; JSON ${data !== null}; 빈 메모 배열 ${Array.isArray(data?.notes) && data.notes.length === 0}`;
-        } else if (path === '/aleph.json') {
-          observed = `HTTP ${response.status}; 단계 일치 ${data?.step === config.step}; 저장소 일치 ${data?.repoUrl === config.repoUrl}`;
-        } else {
-          const denied = response.status === 401 && data !== null && !Array.isArray(data)
-            && Object.keys(data).every(key => key === 'error') && typeof data.error === 'string';
-          observed = `HTTP ${response.status}; 인증 거부·자료 없음 ${denied}`;
-        }
-      } catch { /* 실행 결과를 얻지 못한 점검은 not_run입니다. */ }
-      attempts.push({ attackId, expected, observed });
-    }
-    attempts.push({ attackId: 'write_and_approval_checks',
-      expected: '정상 CRUD·승인 요청·복원은 승인된 시험 세션에서 별도 실측', observed: 'not_run' });
-    return attempts;
+    const { collectApiResults } = await import('./operations-live.mjs');
+    const { measured } = await collectApiResults({ config });
+    return [...measured.map(({ attackId, observed }) => ({ attackId,
+      expected: '실제 공개 GET에서 제공 공격을 확인; 정상·쓰기·회수·복구는 별도 시험', observed })),
+      { attackId: 'forged_login_token', expected: '실제 서명 위조 시험 계약에 따른 거부 확인', observed: 'not_run' },
+      { attackId: 'revoked_identity_reuse', expected: '실제 회수 뒤 재사용 거부', observed: 'not_run' },
+      { attackId: 'restore_defense_replay', expected: '실제 복원 뒤 대표 공격 재검증', observed: 'not_run' }];
   }
   if (config.step === 11) {
     let passed = false;

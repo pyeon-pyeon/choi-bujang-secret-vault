@@ -1,47 +1,24 @@
-import { readFile } from 'node:fs/promises';
 import { RULE_IDS } from './decider.mjs';
+import { collectApiResults, readCatalog, summarizeLiveResults } from './operations-live.mjs';
 
-export function summarizeOperations(ruleIds, datasets) {
-  if (!Array.isArray(ruleIds) || ruleIds.some(id => !/^[a-z][a-z0-9_.-]{0,79}$/.test(id))) throw new Error('invalid_rules');
+export function summarizeOperations(ruleIds, live) {
+  if (!Array.isArray(ruleIds) || ruleIds.some(id => !/^[a-z][a-z0-9_.-]{0,79}$/.test(id))) throw new Error('INVALID_RULES');
   const rules = [...new Set(ruleIds)].map(ruleId => ({ ruleId, source: 'server_configuration' }));
-  const records = [];
-  const sources = [];
-  for (const { moduleKey, result } of datasets) {
-    const prefix = moduleKey === 'brute-force' ? 'bf' : moduleKey === 'web-injection' ? 'wi' : null;
-    const counts = { block: 0, alert: 0, record: 0 };
-    const rows = [];
-    let valid = prefix && result?.schema === 'aleph.xdr.result.v1'
-      && result.moduleKey === moduleKey && Array.isArray(result.decisions);
-    if (valid) for (const event of result.decisions) {
-      if (typeof event?.alertId !== 'string' || !new RegExp(`^${prefix}-\\d+$`).test(event.alertId)
-          || !Object.hasOwn(counts, event.action)) { valid = false; break; }
-      rows.push({ moduleKey, alertId: event.alertId, action: event.action, source: 'local_fixture' });
-      counts[event.action]++;
-    }
-    if (valid && (new Set(rows.map(row => row.alertId)).size !== rows.length
-        || Object.keys(counts).some(key => result.counts?.[key] !== counts[key]))) valid = false;
-    if (valid) { records.push(...rows); sources.push({ moduleKey, status: 'fixture_records_verified', counts }); }
-    else sources.push({ moduleKey, status: 'missing_or_invalid', counts: null });
-  }
-  const counts = { block: 0, alert: 0, record: 0 };
-  for (const row of records) counts[row.action]++;
-  return {
-    schema: 'vault.operations-summary.v1', checkedAt: new Date().toISOString(),
-    rules: { count: rules.length, records: rules, source: 'server_configuration' },
-    detection: { count: records.length, counts, records, sources, source: 'local_fixture',
-      operationalStatus: 'no_verified_live_records' },
-    revocation: { status: 'not_verified', count: null, records: [], reason: '실제 회수·시간 실측 기록이 연결되지 않았습니다.' },
-    recovery: { status: 'not_verified', version: null, records: [], reason: '실제 검증 사본 복구 버전·복구 후 실측 기록이 연결되지 않았습니다.' },
+  const pending = reason => ({ status: 'not_run', count: null, records: [], reason });
+  return { schema: 'vault.operations-summary.v2', checkedAt: new Date().toISOString(),
+    rules: { count: rules.length, records: rules, source: 'server_configuration', executionStatus: 'not_run' },
+    apiResults: live,
+    detection: pending('실제 ALEPH SDP 엔진 사건을 읽는 연결 계약이 확인되지 않았습니다. 로컬 fixture는 집계하지 않습니다.'),
+    revocation: pending('실제 회수 완료·경과 시간 기록이 연결되지 않았습니다.'),
+    recovery: { ...pending('실제 복구 완료·사본 비교 결과가 연결되지 않았습니다.'), version: null },
+    clearance: { status: 'not_run', reason: '12단계 통과와 제공 41종 방어는 심판 판정으로 확인합니다.' },
   };
 }
 
-export async function readOperationsSummary() {
-  const datasets = [];
-  for (const moduleKey of ['brute-force', 'web-injection']) {
-    let result = null;
-    try { result = JSON.parse(await readFile(new URL(`../xdr/${moduleKey}/result.json`, import.meta.url), 'utf8')); }
-    catch { /* 경로·파일 원문·오류 내용을 응답이나 로그에 전달하지 않습니다. */ }
-    datasets.push({ moduleKey, result });
-  }
-  return summarizeOperations(RULE_IDS, datasets);
+export async function readOperationsSummary(options) {
+  const live = options ? await collectApiResults(options) : {
+    summary: summarizeLiveResults(readCatalog(), []), normal: null, measured: [],
+    catalogSource: readCatalog().sourceUrl,
+  };
+  return summarizeOperations(RULE_IDS, live);
 }

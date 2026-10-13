@@ -1,0 +1,211 @@
+{
+  "schema": "vault.defense-catalog.v1",
+  "sourceUrl": "https://aleph-omega.vercel.app/assets/defense-ui/roster.json",
+  "tests": [
+    {
+      "attackId": "anonymous_note_read",
+      "step": 1,
+      "expected": "보호 본문 없이 거부"
+    },
+    {
+      "attackId": "anonymous_note_list",
+      "step": 1,
+      "expected": "목록과 메모 개수 없이 거부"
+    },
+    {
+      "attackId": "repository_secret_scan",
+      "step": 2,
+      "expected": "비밀값이 없음"
+    },
+    {
+      "attackId": "built_bundle_secret_scan",
+      "step": 2,
+      "expected": "비밀값이 없음"
+    },
+    {
+      "attackId": "static_seed_data_scan",
+      "step": 2,
+      "expected": "메모 본문이 없음"
+    },
+    {
+      "attackId": "anonymous_note_write",
+      "step": 3,
+      "expected": "거부되고 메모가 생성되지 않음"
+    },
+    {
+      "attackId": "missing_login_token",
+      "step": 3,
+      "expected": "보호 본문 없이 거부"
+    },
+    {
+      "attackId": "forged_login_token",
+      "step": 3,
+      "expected": "보호 본문 없이 거부"
+    },
+    {
+      "attackId": "expired_login_token",
+      "step": 3,
+      "expected": "보호 본문 없이 거부"
+    },
+    {
+      "attackId": "token_wrong_audience",
+      "step": 3,
+      "expected": "보호 본문 없이 거부"
+    },
+    {
+      "attackId": "r3_judge_owned_note",
+      "step": 4,
+      "expected": "정상 소유자와 공격자 자기 메모는 200, 교차 조회는 404"
+    },
+    {
+      "attackId": "r3_judge_owned_note_write",
+      "step": 4,
+      "expected": "정상 수정은 200, 교차 수정은 404, 원본 불변"
+    },
+    {
+      "attackId": "foreign_note_delete",
+      "step": 4,
+      "expected": "거부되고 A의 원본 유지"
+    },
+    {
+      "attackId": "direct_origin_note_read",
+      "step": 5,
+      "expected": "보호 메모 표식 없이 거부, 서버 함수의 본인 조회는 유지"
+    },
+    {
+      "attackId": "direct_origin_note_write",
+      "step": 5,
+      "expected": "거부되고 원본 불변, 서버 함수의 본인 수정은 유지"
+    },
+    {
+      "attackId": "origin_alias_bypass",
+      "step": 5,
+      "expected": "서버 전용 키와 시드 표식이 없음"
+    },
+    {
+      "attackId": "unregistered_device",
+      "step": 6,
+      "expected": "등록 기기는 허용되고 미등록 기기는 거부"
+    },
+    {
+      "attackId": "missing_client_certificate",
+      "step": 6,
+      "expected": "TLS에서 연결 거부, 정상 기기는 계속 허용"
+    },
+    {
+      "attackId": "device_subject_mismatch",
+      "step": 6,
+      "expected": "주체 불일치로 거부"
+    },
+    {
+      "attackId": "unregistered_virtual_device_rule",
+      "step": 6,
+      "expected": "등록 기기 사건은 허용, 미등록 가상 기기 사건은 거부하고 이유와 감사 기록을 남김"
+    },
+    {
+      "attackId": "anomalous_region_event",
+      "step": 7,
+      "expected": "추가 확인 판정과 이유 기록"
+    },
+    {
+      "attackId": "anomalous_hour_event",
+      "step": 7,
+      "expected": "추가 확인 판정과 이유 기록"
+    },
+    {
+      "attackId": "anomalous_network_action",
+      "step": 7,
+      "expected": "추가 확인 판정과 정상 사건 허용"
+    },
+    {
+      "attackId": "missing_step_up",
+      "step": 7,
+      "expected": "추가 인증을 요구하고 본문을 주지 않음"
+    },
+    {
+      "attackId": "cross_zone_note_read",
+      "step": 8,
+      "expected": "서버 거부, 자기 구역은 허용"
+    },
+    {
+      "attackId": "cross_zone_note_write",
+      "step": 8,
+      "expected": "서버 거부, 원본 불변"
+    },
+    {
+      "attackId": "cross_zone_note_list",
+      "step": 8,
+      "expected": "목록이 누출되지 않음"
+    },
+    {
+      "attackId": "student_edits_instructor_notice",
+      "step": 8,
+      "expected": "거부되고 강사 정상 수정은 허용"
+    },
+    {
+      "attackId": "doppelganger_detection",
+      "step": 9,
+      "expected": "탐지·회수 시각 기록과 후속 요청 거부"
+    },
+    {
+      "attackId": "revoked_identity_reuse",
+      "step": 9,
+      "expected": "거부되고 감사 기록에 회수 근거 연결"
+    },
+    {
+      "attackId": "stolen_session_after_revoke",
+      "step": 9,
+      "expected": "거부되고 정상 사용자의 새 세션은 허용"
+    },
+    {
+      "attackId": "revoked_lateral_route",
+      "step": 9,
+      "expected": "모든 다른 구역 요청 거부"
+    },
+    {
+      "attackId": "restore_changed_note",
+      "step": 10,
+      "expected": "원래 바이트로 복구되고 앞선 방어의 대표 공격이 다시 거부됨"
+    },
+    {
+      "attackId": "restore_deleted_note",
+      "step": 10,
+      "expected": "원본이 돌아오고 무인증 조회가 다시 거부됨"
+    },
+    {
+      "attackId": "restore_defense_replay",
+      "step": 10,
+      "expected": "복구 자료가 원본과 같고 대표 공격이 모두 거부됨"
+    },
+    {
+      "attackId": "unsigned_client_request",
+      "step": 11,
+      "expected": "거부되고 정상 서명 요청 허용"
+    },
+    {
+      "attackId": "signed_path_tamper",
+      "step": 11,
+      "expected": "서명 불일치로 거부"
+    },
+    {
+      "attackId": "signed_body_tamper",
+      "step": 11,
+      "expected": "서명 불일치로 거부되고 원본 불변"
+    },
+    {
+      "attackId": "combined_anonymous_owner_attack",
+      "step": 12,
+      "expected": "정상 요청 유지, 두 공격 모두 거부"
+    },
+    {
+      "attackId": "combined_device_revocation_attack",
+      "step": 12,
+      "expected": "정상 기기 허용, 두 공격 모두 거부"
+    },
+    {
+      "attackId": "combined_restore_signature_attack",
+      "step": 12,
+      "expected": "복구 자료 유지, 두 공격 모두 거부"
+    }
+  ]
+}
