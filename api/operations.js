@@ -30,6 +30,9 @@ export default async function handler(request, response) {
     if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
     const client = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
-    return response.status(200).json(await readOperationsSummary());
+    const headers = {};
+    if (request.headers?.cookie) headers.cookie = request.headers.cookie;
+    if (request.headers?.authorization) headers.authorization = request.headers.authorization;
+    return response.status(200).json(await readOperationsSummary({ config, headers }));
   } catch { return response.status(503).json({ error: 'SUMMARY_UNAVAILABLE' }); }
 }

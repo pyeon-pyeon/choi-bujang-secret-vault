@@ -29,10 +29,11 @@ async function loadSummary() {
       if (!Object.hasOwn(counts, row.action)) throw new Error('invalid_record');
       counts[row.action]++;
     }
-    if (data.rules.count !== data.rules.records.length || data.detection.count !== data.detection.records.length
-        || Object.keys(counts).some(key => data.detection.counts?.[key] !== counts[key])) throw new Error('count_mismatch');
+    const missingDetection = data.detection.count === null && data.detection.counts === null && data.detection.records.length === 0;
+    if (data.rules.count !== data.rules.records.length || (!missingDetection && (data.detection.count !== data.detection.records.length
+        || Object.keys(counts).some(key => data.detection.counts?.[key] !== counts[key])))) throw new Error('count_mismatch');
     const rules = section('판정기 규칙 · 서버 설정 확인', `${data.rules.count}개: ${data.rules.records.map(r => r.ruleId).join(', ')}. 실제 판정 실행 건수가 아닙니다.`);
-    const detection = section('탐지 사건 · 로컬 가상 기록', `${data.detection.count}건 — block ${counts.block}, alert ${counts.alert}, record ${counts.record}. 실제 접속 탐지 기록은 미확인입니다.`);
+    const detection = section('탐지 사건 · 로컬 가상 기록', missingDetection ? '검증된 기록이 없어 건수 미확인입니다.' : `${data.detection.count}건 — block ${counts.block}, alert ${counts.alert}, record ${counts.record}. 실제 접속 탐지 기록은 미확인입니다.`);
     const unavailable = data.detection.sources.filter(source => source.status !== 'fixture_records_verified');
     if (unavailable.length) detection.append(section('누락 또는 검증 실패', unavailable.map(source => source.moduleKey).join(', ') + ' — 결과에 포함하지 않았습니다.'));
     const revocation = section('실제 회수 상태', data.revocation.reason + ' 완료 건수는 확인되지 않아 표시하지 않습니다.');
@@ -43,7 +44,27 @@ async function loadSummary() {
       const item = document.createElement('li'); item.textContent = `${row.moduleKey} / ${row.alertId} / ${row.action} / 가상 기록`; list.append(item);
     }
     records.append(list);
-    content.replaceChildren(rules, detection, revocation, recovery, records);
+    const checks = data.apiChecks;
+    if (!Array.isArray(checks?.records) || checks.count !== checks.records.length
+        || ['passed', 'failed', 'notRun'].some((key, i) => checks[key] !== checks.records.filter(r => r.status === ['passed', 'failed', 'not_run'][i]).length)) throw new Error('api_count_mismatch');
+    const api = section('실제 API 확인', `확인 일치 ${checks.passed}건 / 불일치 ${checks.failed}건 / 미실행 ${checks.notRun}건. 공식 41종 완료 수가 아닙니다.`);
+    const table = document.createElement('table');
+    const header = document.createElement('tr');
+    for (const label of ['요청', '기대 결과', '실제 HTTP', '판정', '서버 요청 ID', '확인 시각']) {
+      const cell = document.createElement('th'); cell.textContent = label; header.append(cell);
+    }
+    table.append(header);
+    for (const row of checks.records) {
+      if (!['passed', 'failed', 'not_run'].includes(row.status)) throw new Error('invalid_api_record');
+      const line = document.createElement('tr');
+      for (const value of [row.path ? `${row.method} ${row.path}` : row.testId, row.expected,
+        row.httpStatus ?? '미실행', row.status, row.requestId ?? '미제공', row.checkedAt ?? '미실행']) {
+        const cell = document.createElement('td'); cell.textContent = String(value); line.append(cell);
+      }
+      table.append(line);
+    }
+    api.append(table);
+    content.replaceChildren(rules, detection, revocation, recovery, api, records);
     content.hidden = false; refresh.hidden = false;
     status.textContent = '서버 확인 시각: ' + data.checkedAt + ' · 운영 실측과 가상 기록을 구분합니다.';
   } catch {
