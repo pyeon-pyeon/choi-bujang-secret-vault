@@ -1,3 +1,4 @@
+import { requireRegisteredDevice } from '../src/device-access.mjs';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -47,6 +48,7 @@ export default async function handler(request, response) {
     const client = createClient(url, secret, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
+    if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (single && (typeof id !== 'string' || !uuid.test(id))) {
       return response.status(400).json({ error: 'INVALID_ID' });

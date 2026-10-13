@@ -1,3 +1,4 @@
+import { requireRegisteredDevice } from '../../src/device-access.mjs';
 import { createClient } from '@supabase/supabase-js';
 import { readFile } from 'node:fs/promises';
 import { createLoginVerifier } from '../../src/verify-login.mjs';
@@ -41,6 +42,7 @@ export default async function handler(request, response) {
     const identity = await verifyLogin(authorization);
     if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
     const client = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
+    if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
     const backup = await client.from('learning_note_backups').select('note_id,owner_id,title,content,content_sha256,verified')
       .eq('note_id', noteId).eq('owner_id', identity.userId).eq('verified', true).maybeSingle();
     if (backup.error) return response.status(503).json({ error: 'RESTORE_UNAVAILABLE' });

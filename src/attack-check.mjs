@@ -3,6 +3,19 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 11) {
+    let passed = false;
+    try {
+      execFileSync(process.execPath, ['--test', 'test/device-flow.test.mjs'], {
+        cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000,
+      });
+      passed = true;
+    } catch { /* 테스트 원문·세션을 제출 결과에 복사하지 않습니다. */ }
+    return [{ attackId: 'device_approval_fixture',
+      expected: '모의 서버·화면: 승인 전 자료 없음, 요청은 pending, 서버 승인 뒤 기존 자료 허용, 회수·타계정·만료 거부',
+      observed: passed ? '모의 기기 승인 흐름 시험 통과; 실제 관리자 승인·브라우저 설치·배포 및 심판 실측 미실행'
+        : '모의 시험 실패; 실제 승인·배포 실측 미실행' }];
+  }
   if (config.step === 10) {
     const attempts = [];
     try {

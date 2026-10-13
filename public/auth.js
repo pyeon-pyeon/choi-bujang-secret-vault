@@ -1,3 +1,6 @@
+const deviceStatus = document.querySelector('#device-status');
+const requestDevice = document.querySelector('#request-device');
+const refreshDevice = document.querySelector('#refresh-device');
 const form = document.querySelector('#login-form');
 const email = document.querySelector('#login-email');
 const password = document.querySelector('#login-password');
@@ -15,6 +18,7 @@ const noteMessage = document.querySelector('#note-message');
 async function noteRequest(path, method, body) {
   const state = await authRequest('GET');
   if (!state.signedIn) { render(null); throw new Error('다시 로그인하세요.'); }
+  if (!await checkDevice()) throw new Error('서버 기기 승인이 필요합니다.');
   const response = await fetch(path, {
     method, cache: 'no-store', headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
@@ -33,6 +37,10 @@ async function loadNotes(session) {
     list.replaceChildren(item);
   };
   if (!session?.signedIn) { notice('로그인 후 자료를 불러옵니다.'); return; }
+  if (!await checkDevice() || version !== loadVersion) {
+    if (version === loadVersion) notice('승인 전에는 자료를 표시하지 않습니다.');
+    return;
+  }
   notice('자료를 불러오는 중입니다.');
   try {
     const result = await fetch('/api/notes', {
@@ -80,7 +88,10 @@ let signedIn = false;
 function render(session) {
   currentSession = session;
   signedIn = Boolean(session?.signedIn);
-  noteForm.hidden = !signedIn;
+  noteForm.hidden = true;
+  requestDevice.hidden = !signedIn;
+  refreshDevice.hidden = !signedIn;
+  if (!signedIn) deviceStatus.textContent = '기기 승인 상태: 로그인 후 확인합니다.';
   if (!signedIn) { noteForm.reset(); noteMessage.textContent = ''; }
   form.hidden = signedIn;
   logout.hidden = !signedIn;
@@ -151,3 +162,38 @@ noteForm.addEventListener('submit', async (event) => {
   } catch (error) { noteMessage.textContent = error.message; }
   finally { button.disabled = false; }
 });
+
+async function checkDevice(method = 'GET') {
+  const session = currentSession;
+  try {
+    const response = await fetch('/api/device', { method, credentials: 'same-origin', cache: 'no-store' });
+    const data = await response.json();
+    if (session !== currentSession || !session?.signedIn) return false;
+    if (!response.ok) throw new Error('device_status_unavailable');
+    const labels = { not_requested: '등록 요청이 없습니다.', pending: '승인 대기 중입니다.', approved: '서버가 승인된 등록 기기로 확인했습니다.', revoked: '승인이 회수됐습니다.' };
+    deviceStatus.textContent = '기기 승인 상태: ' + (labels[data.status] || '확인 불가');
+    if (typeof data.requestId === 'string' && /^[a-f0-9]{16}$/.test(data.requestId)) deviceStatus.textContent += ' 요청 번호: ' + data.requestId;
+    const approved = data.status === 'approved';
+    requestDevice.hidden = data.status !== 'not_requested';
+    noteForm.hidden = !approved;
+    if (!approved) list.replaceChildren();
+    return approved;
+  } catch {
+    if (session === currentSession) {
+      noteForm.hidden = true; list.replaceChildren();
+      deviceStatus.textContent = '서버 승인 상태를 확인할 수 없습니다. 자료는 열지 않습니다.';
+    }
+    return false;
+  }
+}
+requestDevice.addEventListener('click', async () => {
+  requestDevice.disabled = true;
+  try { await checkDevice('POST'); } finally { requestDevice.disabled = false; }
+});
+refreshDevice.addEventListener('click', async () => {
+  refreshDevice.disabled = true;
+  try { await loadNotes(currentSession); } finally { refreshDevice.disabled = false; }
+});
+setInterval(() => {
+  if (currentSession?.signedIn && !document.hidden) void loadNotes(currentSession);
+}, 30000);

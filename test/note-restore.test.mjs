@@ -39,6 +39,7 @@ test('가상 B의 한 건 복원 및 사본·ID·소유자·해시 검사', asyn
   source = source.replace(/^import .*;\n/gm, '').replace(/^const config = .*;\n/m, '')
     .replace('export default async function handler', 'async function handler');
   const context = vm.createContext({ URL, config, noteContentHash,
+    requireRegisteredDevice: async () => true, // 승인 기기 조건; 기기 게이트는 별도 시험
     process: { env: { SUPABASE_URL: 'https://fixture.invalid', SUPABASE_SECRET_KEY: 'synthetic-test-only' } },
     createClient: () => client, createLoginVerifier: () => async () => ({ userId: owner }) });
   vm.runInContext(source, context);

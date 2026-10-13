@@ -1,3 +1,4 @@
+import { requireRegisteredDevice } from '../../src/device-access.mjs';
 import { createClient } from '@supabase/supabase-js';
 import { readFile } from 'node:fs/promises';
 import { createLoginVerifier } from '../../src/verify-login.mjs';
@@ -38,6 +39,7 @@ export default async function handler(request, response) {
     const identity = await verifyLogin(authorization);
     if (!identity) return response.status(401).json({ error: 'INVALID_LOGIN' });
     const client = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
+    if (!await requireRegisteredDevice(client, request, identity.userId, response)) return;
     // 요청의 구역·role 대신 DB 공지의 구역과 저장된 권한을 사용합니다.
     const notice = await client.from('learning_notices').select('id,class_id,project_id').eq('id', id).maybeSingle();
     if (notice.error) return response.status(503).json({ error: 'NOTICE_UNAVAILABLE' });
