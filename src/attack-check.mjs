@@ -3,6 +3,27 @@ import { execFileSync } from 'node:child_process';
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
+  if (config.step === 9) {
+    const { detect } = await import('./detect.mjs');
+    const reads = (count, network, device = 'a'.repeat(16)) =>
+      Array.from({ length: count }, (_, i) => ({
+        at: new Date(Date.UTC(2026, 9, 1) + i * 2000).toISOString(),
+        method: 'GET', identity: { sub: 'learner_fixture' }, deviceId: device,
+        signals: { source: 'judge_fixture', network },
+      }));
+    const checks = [
+      ['normal_detection_fixture', reads(30, 'usual'), 'observe'],
+      ['compound_detection_fixture', reads(121, 'unusual'), 'propose_revocation'],
+      ['usual_network_fixture', reads(200, 'usual'), 'observe'],
+      ['missing_device_fixture', reads(200, 'unusual').map(({ deviceId, ...event }) => event), 'observe'],
+      ['separate_devices_fixture', [...reads(100, 'unusual'), ...reads(100, 'unusual', 'b'.repeat(16))], 'observe'],
+    ];
+    return checks.map(([attackId, events, expected]) => {
+      const result = detect(events);
+      return { attackId, expected: `확장 로컬 가상 계약: ${expected}`,
+        observed: `가상 탐지 ${result.action}; 이유 ${result.reasonCode ?? '없음'}; 단일 기기 대상 ${typeof result.deviceId === 'string'}; 실제 회수·시간 실측 미실행` };
+    });
+  }
   if (config.step === 8) {
     const { decide } = await import('./decider.mjs');
     const { fixtureRequests } = await import('../scripts/fixture-7.mjs');
