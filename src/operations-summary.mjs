@@ -1,5 +1,3 @@
-import { readApiCheckSnapshot } from './api-checks.mjs';
-export { measureApiChecks } from './api-checks.mjs';
 import { readFile } from 'node:fs/promises';
 import { RULE_IDS } from './decider.mjs';
 
@@ -30,8 +28,7 @@ export function summarizeOperations(ruleIds, datasets) {
   return {
     schema: 'vault.operations-summary.v1', checkedAt: new Date().toISOString(),
     rules: { count: rules.length, records: rules, source: 'server_configuration' },
-    detection: { count: sources.some(s => s.status === 'fixture_records_verified') ? records.length : null,
-      counts: sources.some(s => s.status === 'fixture_records_verified') ? counts : null, records, sources, source: 'local_fixture',
+    detection: { count: records.length, counts, records, sources, source: 'local_fixture',
       operationalStatus: 'no_verified_live_records' },
     revocation: { status: 'not_verified', count: null, records: [], reason: '실제 회수·시간 실측 기록이 연결되지 않았습니다.' },
     recovery: { status: 'not_verified', version: null, records: [], reason: '실제 검증 사본 복구 버전·복구 후 실측 기록이 연결되지 않았습니다.' },
@@ -46,8 +43,5 @@ export async function readOperationsSummary() {
     catch { /* 경로·파일 원문·오류 내용을 응답이나 로그에 전달하지 않습니다. */ }
     datasets.push({ moduleKey, result });
   }
-  const summary = summarizeOperations(RULE_IDS, datasets);
-  summary.apiChecks = readApiCheckSnapshot();
-  summary.checkedAt = new Date().toISOString();
-  return summary;
+  return summarizeOperations(RULE_IDS, datasets);
 }
