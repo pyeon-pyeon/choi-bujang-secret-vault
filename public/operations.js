@@ -33,14 +33,17 @@ async function loadSummary() {
     if (data.rules.count !== data.rules.records.length || (!missingDetection && (data.detection.count !== data.detection.records.length
         || Object.keys(counts).some(key => data.detection.counts?.[key] !== counts[key])))) throw new Error('count_mismatch');
     const rules = section('판정기 규칙 · 서버 설정 확인', `${data.rules.count}개: ${data.rules.records.map(r => r.ruleId).join(', ')}. 실제 판정 실행 건수가 아닙니다.`);
-    const detection = section('탐지 사건 · 로컬 가상 기록', missingDetection ? '검증된 기록이 없어 건수 미확인입니다.' : '로컬 fixture 분류 기록만 있습니다. 이 분류를 실제 차단 수나 41종 결과에 합산하지 않습니다.');
-    const unavailable = data.detection.sources.filter(source => source.status !== 'fixture_records_verified');
+    const detection = section('실제 탐지 사건', missingDetection ? '검증된 기록이 없어 건수 미확인입니다.' : '로컬 fixture 분류 기록만 있습니다. 이 분류를 실제 차단 수나 41종 결과에 합산하지 않습니다.');
+    if (!Array.isArray(data.fixtures?.records) || !Array.isArray(data.fixtures.sources)
+        || data.fixtures.includedInDefenseTotals !== false
+        || (data.fixtures.count !== null && data.fixtures.count !== data.fixtures.records.length)) throw new Error('invalid_fixture_records');
+    const unavailable = data.fixtures.sources.filter(source => source.status !== 'fixture_records_verified');
     if (unavailable.length) detection.append(section('누락 또는 검증 실패', unavailable.map(source => source.moduleKey).join(', ') + ' — 결과에 포함하지 않았습니다.'));
     const revocation = section('실제 회수 상태', data.revocation.reason + ' 완료 건수는 확인되지 않아 표시하지 않습니다.');
     const recovery = section('실제 복구 버전', data.recovery.reason + ' 복구 성공이나 안전 버전을 추정하지 않습니다.');
     const records = section('로컬 fixture 기록 · 실측 제외', '아래 값은 가상 경보 분류이며 운영 차단·41종 시험 결과가 아닙니다.');
     const list = document.createElement('ul');
-    for (const row of data.detection.records) {
+    for (const row of data.fixtures.records) {
       const item = document.createElement('li'); item.textContent = `${row.moduleKey} / ${row.alertId} / ${row.action} / 가상 기록`; list.append(item);
     }
     records.append(list);
@@ -48,10 +51,10 @@ async function loadSummary() {
     if (!Array.isArray(checks?.records) || checks.count !== checks.records.length
         || checks.recordedCount !== checks.records.filter(row => row.status === 'recorded').length
         || checks.notRun !== checks.records.filter(row => row.status === 'not_run').length
-        || checks.coverage?.status !== 'not_run' || checks.coverage.executed !== 0
-        || checks.coverage.notRun !== 41 || checks.coverage.blocked !== 0
-        || checks.coverage.allowed !== 0 || checks.coverage.passed !== 0) throw new Error('api_count_mismatch');
-    const api = section('보관된 실제 API 응답 기록', '아래 표는 별도 GET 확인에서 보관한 같은 기록입니다. 공식 41종: 실행 0건·미실행 41건. 확인된 막음 0건·허용 0건·통과 0건. 아래 HTTP 기록은 이 시험에 포함하지 않습니다.');
+        || checks.coverage?.status !== 'not_run' || checks.coverage.catalogAvailable !== false
+        || !Array.isArray(checks.coverage.records) || checks.coverage.records.length !== 0
+        || ['expectedTestCount', 'executed', 'notRun', 'blocked', 'allowed', 'passed'].some(key => checks.coverage[key] !== null)) throw new Error('api_count_mismatch');
+    const api = section('보관된 실제 API 응답 기록', '아래 표는 별도 GET 확인에서 보관한 같은 기록입니다. 공식 시험: 목록·실행 기록 미확보, 미실행. 총계와 막음·허용·통과 수를 만들지 않습니다. 아래 HTTP 기록은 별도 확인 기록입니다.');
     api.append(section('기록 대상 배포 커밋', checks.deploymentCommit ?? '미확인'));
     const table = document.createElement('table');
     const header = document.createElement('tr');

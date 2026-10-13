@@ -14,19 +14,24 @@ test('가린 기록과 합계 일치, 원문 제외, 실행 증거 없는 상태
     ] };
   const summary = summarizeOperations(['device_registered'], [{ moduleKey: 'brute-force', result }]);
   assert.equal(summary.rules.count, summary.rules.records.length);
-  assert.equal(summary.detection.count, summary.detection.records.length);
-  assert.equal(Object.values(summary.detection.counts).reduce((a, b) => a + b, 0), summary.detection.count);
+  assert.equal(summary.detection.count, null);
+  assert.equal(summary.detection.counts, null);
+  assert.equal(summary.detection.records.length, 0);
+  assert.equal(summary.fixtures.count, summary.fixtures.records.length);
+  assert.equal(summary.fixtures.includedInDefenseTotals, false);
   assert(!JSON.stringify(summary).includes('synthetic-'));
   assert.equal(summary.revocation.count, null);
   assert.equal(summary.recovery.version, null);
   const invalid = structuredClone(result); invalid.counts.block = 99;
   const rejected = summarizeOperations([], [{ moduleKey: 'brute-force', result: invalid }]);
-  assert.equal(rejected.detection.sources[0].status, 'missing_or_invalid');
+  assert.equal(rejected.fixtures.sources[0].status, 'missing_or_invalid');
   assert.equal(rejected.detection.records.length, 0);
   assert.equal(rejected.detection.count, null);
   assert.equal(rejected.detection.counts, null);
   const current = await readOperationsSummary();
-  assert.equal(current.detection.count, current.detection.records.length);
+  assert.equal(current.detection.count, null);
+  assert.equal(current.detection.records.length, 0);
+  if (current.fixtures.count !== null) assert.equal(current.fixtures.count, current.fixtures.records.length);
 });
 
 test('요약 API도 비로그인·미승인에서는 기록을 조회하지 않음', async () => {
@@ -113,8 +118,8 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
   const data = elements.get('#operations-data');
   const text = node => [node.textContent, ...node.children.map(text)].join(' ');
   assert.equal(data.hidden, false);
-  assert.match(text(data), /공식 41종: 실행 0건·미실행 41건/);
-  assert.match(text(data), /확인된 막음 0건·허용 0건·통과 0건/);
+  assert.match(text(data), /공식 시험: 목록·실행 기록 미확보, 미실행/);
+  assert.ok(!text(data).includes('미실행 41건'));
   assert.ok(!text(data).includes('통과 4'));
   assert.ok(!text(data).includes('block 18'));
   for (const row of apiChecks.records) assert.ok(text(data).includes(row.attackId));
@@ -128,8 +133,8 @@ test('작전실 화면은 응답 기록의 수치를 표시하고 불일치 응�
 test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실행 없이 미실행 반환', async () => {
   const snapshot = readApiCheckSnapshot();
   assert.equal(snapshot.coverage.status, 'not_run');
-  assert.equal(snapshot.coverage.blocked, 0);
-  assert.equal(snapshot.coverage.allowed, 0);
+  assert.equal(snapshot.coverage.blocked, null);
+  assert.equal(snapshot.coverage.allowed, null);
   assert.equal(snapshot.recordedCount, snapshot.records.filter(row => row.status === 'recorded').length);
   assert.equal(snapshot.passed, undefined);
   const original = globalThis.fetch;
@@ -144,10 +149,30 @@ test('보관된 실측과 현재 묶음 실행을 구분하고 실제 GET 재실
 
 test('미실행 41종은 막음·허용·통과에 포함되지 않음', () => {
   const coverage = defenseTestCoverage();
-  assert.deepEqual(coverage, { expectedTestCount: 41, catalogAvailable: false, status: 'not_run',
-    executed: 0, notRun: 41, blocked: 0, allowed: 0, passed: 0 });
-  assert.equal(coverage.executed + coverage.notRun, coverage.expectedTestCount);
+  assert.deepEqual(coverage, { expectedTestCount: null, catalogAvailable: false, status: 'not_run', records: [],
+    executed: null, notRun: null, blocked: null, allowed: null, passed: null });
   const snapshot = readApiCheckSnapshot();
   // 과거 HTTP 기록 수와 무관하게 공식 시험은 전부 미실행입니다.
   assert.deepEqual(snapshot.coverage, coverage);
+});
+
+test('수정3의 실측 기록 보존과 미실행 집계 제외를 함께 유지', async () => {
+  const archived = readApiCheckSnapshot();
+  const summary = await readOperationsSummary();
+  assert.deepEqual(summary.apiChecks.records, archived.records);
+  assert.equal(summary.apiChecks.recordedCount,
+    archived.records.filter(row => row.status === 'recorded').length);
+  assert.equal(summary.apiChecks.notRun,
+    archived.records.filter(row => row.status === 'not_run').length);
+  assert.equal(summary.detection.counts, null);
+  assert.equal(summary.fixtures.includedInDefenseTotals, false);
+  assert.equal(summary.apiChecks.coverage.passed, null);
+  assert.equal(summary.apiChecks.coverage.blocked, null);
+  for (const row of archived.records.filter(row => row.status === 'not_run')) {
+    assert.equal(row.httpStatus, null);
+    assert.equal(row.matched, null);
+    assert.equal(row.observed, 'not_run');
+  }
+  const attempts = toAttackAttempts();
+  assert.ok(attempts.every(row => row.observed === 'not_run'));
 });

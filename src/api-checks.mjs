@@ -80,11 +80,10 @@ export function emptyApiChecks() {
     checkedAt: null, matched: null, observed: 'not_run' })));
 }
 
-// 공식 41종 실행 결과가 아직 없으므로 확인된 판정은 0건입니다.
-// HTTP 점검·로컬 fixture는 이 집계에 입력하지 않습니다.
+// 공식 시험 목록과 검증된 실행 기록이 없으면 총계를 만들지 않습니다.
 export function defenseTestCoverage() {
-  return { expectedTestCount: 41, catalogAvailable: false, status: 'not_run',
-    executed: 0, notRun: 41, blocked: 0, allowed: 0, passed: 0 };
+  return { catalogAvailable: false, status: 'not_run', records: [],
+    expectedTestCount: null, executed: null, notRun: null, blocked: null, allowed: null, passed: null };
 }
 
 export function readApiCheckSnapshot() {
