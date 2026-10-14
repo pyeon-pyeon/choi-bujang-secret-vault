@@ -1,0 +1,109 @@
+{
+  "schema": "aleph.xdr.deny-candidates.v1",
+  "candidates": [
+    {
+      "ruleId": "xdr_known_cve_kc_01",
+      "effect": "deny",
+      "evidenceAlertId": "kc-01",
+      "observedAt": "2026-09-27T09:14:02+09:00",
+      "expiresAt": "2026-09-27T00:29:02.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 머리글의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_02",
+      "effect": "deny",
+      "evidenceAlertId": "kc-02",
+      "observedAt": "2026-09-27T09:14:18+09:00",
+      "expiresAt": "2026-09-27T00:29:18.000Z",
+      "sourceAddress": "203.0.113.10",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 인자의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_03",
+      "effect": "deny",
+      "evidenceAlertId": "kc-03",
+      "observedAt": "2026-09-27T09:17:06+09:00",
+      "expiresAt": "2026-09-27T00:32:06.000Z",
+      "sourceAddress": "198.51.100.16",
+      "account": null,
+      "confidence": 0.98,
+      "reason": "요청 인자의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_04",
+      "effect": "deny",
+      "evidenceAlertId": "kc-04",
+      "observedAt": "2026-09-27T10:04:22+09:00",
+      "expiresAt": "2026-09-27T01:19:22.000Z",
+      "sourceAddress": "192.0.2.16",
+      "account": null,
+      "confidence": 0.98,
+      "reason": "요청 머리글의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_05",
+      "effect": "deny",
+      "evidenceAlertId": "kc-05",
+      "observedAt": "2026-09-27T10:21:09+09:00",
+      "expiresAt": "2026-09-27T01:36:09.000Z",
+      "sourceAddress": "203.0.113.24",
+      "account": null,
+      "confidence": 0.98,
+      "reason": "요청 인자의 JNDI 원격 조회 형태 · 취약점 점검 도구 흔적과 조회 구문의 결합",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_06",
+      "effect": "deny",
+      "evidenceAlertId": "kc-06",
+      "observedAt": "2026-09-27T11:08:41+09:00",
+      "expiresAt": "2026-09-27T02:23:41.000Z",
+      "sourceAddress": "198.51.100.24",
+      "account": null,
+      "confidence": 0.98,
+      "reason": "요청 인자의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_07",
+      "effect": "deny",
+      "evidenceAlertId": "kc-07",
+      "observedAt": "2026-09-27T13:06:15+09:00",
+      "expiresAt": "2026-09-27T04:21:15.000Z",
+      "sourceAddress": "192.0.2.24",
+      "account": null,
+      "confidence": 0.95,
+      "reason": "요청 머리글의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    },
+    {
+      "ruleId": "xdr_known_cve_kc_08",
+      "effect": "deny",
+      "evidenceAlertId": "kc-08",
+      "observedAt": "2026-09-27T14:19:03+09:00",
+      "expiresAt": "2026-09-27T05:34:03.000Z",
+      "sourceAddress": "203.0.113.31",
+      "account": null,
+      "confidence": 0.98,
+      "reason": "요청 머리글의 JNDI 원격 조회 형태 · 요청 인자의 JNDI 원격 조회 형태",
+      "status": "expired",
+      "enforced": false
+    }
+  ]
+}

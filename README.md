@@ -1,5 +1,11 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 보너스 xdr-03 저장점: 알려진 취약점 악용 탐지
+
+xdr/known-cve의 읽기 모듈은 경보 24건에서 지정된 다섯 필드만 추출하고 비밀값 의심 필드를 가립니다. patterns.json의 Apache CVE-2021-44228·MITRE T1190 근거 패턴을 decide.mjs 상수로 복사했습니다. 판단은 외부 의존성·파일·네트워크 없이 반환하며 confidence 0.85 이상 block, 0.5 이상 alert, 나머지 record입니다.
+
+재현: `npm run xdr:run -- known-cve`. result.json을 다시 생성해 block 8·alert 8·record 8, 정상 이벤트 8건의 block 0건을 확인했습니다. 원본 경보와 기존 판정 규칙은 보존했습니다. `node xdr/known-cve/respond.mjs`는 만료 시각·근거 경보 번호가 있는 후보 8건을 저장하고 xdr/alerts.log에 16줄을 추가합니다. 재실행 시 알림은 추가됩니다. 로컬 경보 재생에서 후보 거부·정상 허용·만료 뒤 허용을 확인했지만, 후보를 실제 ZTNA 주체에 연결하는 계약은 없어 운영 차단은 미실행입니다. decide.mjs는 응답 처리와 독립입니다.
+
 ## 12단계 저장점_찐찐수정본: 파일 경로 호환성 수정
 
 공격 목록 파일 읽기는 fileURLToPath로 변환한 경로 문자열을 사용합니다. URL 객체를 파일 읽기에 직접 넘기지 않도록 호환성 후보 한 곳만 수정했습니다. 관련 모의 시험 5개 통과; 격리 환경의 path_format 해소는 아직 미확인입니다.
