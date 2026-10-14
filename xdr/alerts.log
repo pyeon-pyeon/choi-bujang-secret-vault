@@ -83,3 +83,20 @@
 {"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-14","action":"alert","confidence":0.6,"reason":"시작 폴더의 낯선 프로그램 추가","enforced":false}
 {"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-15","action":"alert","confidence":0.6,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
 {"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-16","action":"alert","confidence":0.6,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-01","action":"block","confidence":0.95,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-02","action":"block","confidence":0.95,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-03","action":"block","confidence":0.95,"reason":"업무 시간 밖의 복합 권한 사용","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-04","action":"block","confidence":0.98,"reason":"갑작스러운 관리자 그룹 추가 · 권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-05","action":"block","confidence":0.95,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-06","action":"block","confidence":0.95,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-07","action":"block","confidence":0.98,"reason":"갑작스러운 관리자 그룹 추가 · 권한 상승 직후의 낯선 관리자 명령 · 업무 시간 밖의 복합 권한 사용","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-08","action":"block","confidence":0.95,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-09","action":"block","confidence":0.95,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-10","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-11","action":"alert","confidence":0.6,"reason":"갑작스러운 관리자 그룹 추가 · 권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-12","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-13","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-14","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-15","action":"alert","confidence":0.6,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-16","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
+{"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-17","action":"alert","confidence":0.6,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
