@@ -67,3 +67,19 @@
 {"at":"2026-10-14T03:02:32.002Z","evidenceAlertId":"kc-14","action":"alert","confidence":0.6,"reason":"요청 인자의 JNDI 원격 조회 형태","enforced":false}
 {"at":"2026-10-14T03:02:32.002Z","evidenceAlertId":"kc-15","action":"alert","confidence":0.6,"reason":"요청 인자의 JNDI 원격 조회 형태","enforced":false}
 {"at":"2026-10-14T03:02:32.002Z","evidenceAlertId":"kc-16","action":"alert","confidence":0.6,"reason":"요청 인자의 JNDI 원격 조회 형태","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-01","action":"block","confidence":0.95,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-02","action":"block","confidence":0.95,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-03","action":"block","confidence":0.95,"reason":"시작 폴더의 낯선 프로그램 추가","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-04","action":"block","confidence":0.98,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-05","action":"block","confidence":0.95,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-06","action":"block","confidence":0.95,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-07","action":"block","confidence":0.98,"reason":"낯선 예약 작업을 통한 반복 실행 · 시작 폴더의 낯선 프로그램 추가","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-08","action":"block","confidence":0.95,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-09","action":"alert","confidence":0.6,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-10","action":"alert","confidence":0.6,"reason":"시작 폴더의 낯선 프로그램 추가","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-11","action":"alert","confidence":0.6,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-12","action":"alert","confidence":0.6,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-13","action":"alert","confidence":0.6,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-14","action":"alert","confidence":0.6,"reason":"시작 폴더의 낯선 프로그램 추가","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-15","action":"alert","confidence":0.6,"reason":"낯선 예약 작업을 통한 반복 실행","enforced":false}
+{"at":"2026-10-14T04:25:56.970Z","evidenceAlertId":"ps-16","action":"alert","confidence":0.6,"reason":"서명 없는 새 서비스 등록·실행 파일 변경","enforced":false}

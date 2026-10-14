@@ -1,5 +1,11 @@
 # BYTE BACK 방어전 시작 틀 R5
 
+## 보너스 xdr-04 저장점: 몰래 심어진 프로그램 탐지
+
+xdr/persistence의 읽기 모듈은 경보 24건의 지정된 다섯 필드만 추출하고 비밀값 의심 내용을 가립니다. T1543·T1053과 시작 폴더의 직접 근거 T1547.001 패턴을 decide.mjs 상수로 복사했습니다. 파일·패키지·네트워크 없이 판단하며 confidence 0.85 이상 block, 0.5 이상 alert, 나머지는 record입니다. 서명 미확인을 서명 없음으로 단정하지 않습니다.
+
+재현: `npm run xdr:run -- persistence`. result.json 갱신 결과 block 8·alert 8·record 8이며 정상 이벤트 8건의 block은 0건입니다. `node xdr/persistence/respond.mjs`는 만료 시각·근거 경보 번호가 있는 후보 8건을 저장하고 기존 xdr/alerts.log에 알림 16줄을 추가합니다. 재실행하면 알림도 추가됩니다. 로컬 경보 재생에서 후보 거부·정상 허용·만료 뒤 허용을 확인했습니다. 실제 ZTNA 주체 연결은 없으므로 운영 차단은 미실행입니다. 기존 판정 규칙·decide.mjs와 원본 경보는 응답 처리에서 변경하지 않습니다.
+
 ## 보너스 xdr-03 저장점: 알려진 취약점 악용 탐지
 
 xdr/known-cve의 읽기 모듈은 경보 24건에서 지정된 다섯 필드만 추출하고 비밀값 의심 필드를 가립니다. patterns.json의 Apache CVE-2021-44228·MITRE T1190 근거 패턴을 decide.mjs 상수로 복사했습니다. 판단은 외부 의존성·파일·네트워크 없이 반환하며 confidence 0.85 이상 block, 0.5 이상 alert, 나머지 record입니다.
