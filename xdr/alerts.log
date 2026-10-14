@@ -100,3 +100,23 @@
 {"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-15","action":"alert","confidence":0.6,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
 {"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-16","action":"alert","confidence":0.6,"reason":"권한 상승 직후의 낯선 관리자 명령","enforced":false}
 {"at":"2026-10-14T04:35:11.931Z","evidenceAlertId":"pv-17","action":"alert","confidence":0.6,"reason":"갑작스러운 관리자 그룹 추가","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-01","action":"block","confidence":0.95,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-02","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송 · 업무 시간 밖 압축 자료 반출","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-03","action":"block","confidence":0.95,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-04","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송 · 명령 통로·낯선 프로토콜의 연속 자료 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-05","action":"block","confidence":0.95,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-06","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-07","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송 · 업무 시간 밖 압축 자료 반출","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-08","action":"block","confidence":0.95,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-09","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송 · 명령 통로·낯선 프로토콜의 연속 자료 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-10","action":"block","confidence":0.98,"reason":"낯선 목적지로 대용량·반복 전송 · 업무 시간 밖 압축 자료 반출","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-11","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-12","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-13","action":"alert","confidence":0.6,"reason":"업무 시간 밖 압축 자료 반출 · 낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-14","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-15","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-16","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-17","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-18","action":"alert","confidence":0.6,"reason":"낯선 목적지로 대용량·반복 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-19","action":"alert","confidence":0.6,"reason":"명령 통로·낯선 프로토콜의 연속 자료 전송","enforced":false}
+{"at":"2026-10-14T04:50:09.514Z","evidenceAlertId":"ex-20","action":"alert","confidence":0.6,"reason":"업무 시간 밖 압축 자료 반출 · 낯선 목적지로 대용량·반복 전송","enforced":false}
