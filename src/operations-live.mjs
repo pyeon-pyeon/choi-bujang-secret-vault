@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 
 export const LIVE_CHECKS = Object.freeze([
   { attackId: 'anonymous_note_list', path: '/api/my/notes', kind: 'deny' },
@@ -7,7 +8,8 @@ export const LIVE_CHECKS = Object.freeze([
 ]);
 
 export function readCatalog() {
-  const data = JSON.parse(readFileSync(new URL('../operations/defense-catalog.json', import.meta.url), 'utf8'));
+  const catalogPath = fileURLToPath(new URL('../operations/defense-catalog.json', import.meta.url));
+  const data = JSON.parse(readFileSync(catalogPath, 'utf8'));
   if (data.schema !== 'vault.defense-catalog.v1' || !Array.isArray(data.tests)
       || data.tests.length === 0 || new Set(data.tests.map(row => row.attackId)).size !== data.tests.length
       || data.tests.some(row => !/^[a-z0-9_]{1,80}$/.test(row.attackId)
