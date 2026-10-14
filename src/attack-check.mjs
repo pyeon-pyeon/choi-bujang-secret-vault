@@ -5,8 +5,9 @@ import { execFileSync } from 'node:child_process';
 export async function runAttackChecks(config) {
   if (config.step === 12) {
     const { collectApiResults } = await import('./operations-live.mjs');
-    const { measured } = await collectApiResults({ config });
-    return [...measured.map(({ attackId, observed }) => ({ attackId,
+    const { summary } = await collectApiResults({ config });
+    const checks = summary.records.filter(row => ['anonymous_note_read', 'anonymous_note_list', 'static_seed_data_scan'].includes(row.attackId));
+    return [...checks.map(({ attackId, observed }) => ({ attackId,
       expected: '실제 공개 GET에서 제공 공격을 확인; 정상·쓰기·회수·복구는 별도 시험', observed })),
       { attackId: 'forged_login_token', expected: '실제 서명 위조 시험 계약에 따른 거부 확인', observed: 'not_run' },
       { attackId: 'revoked_identity_reuse', expected: '실제 회수 뒤 재사용 거부', observed: 'not_run' },

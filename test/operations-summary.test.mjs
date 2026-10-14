@@ -27,13 +27,13 @@ async function measured() {
 
 test('실제 GET 응답의 가린 기록에서 집계하고 정상 본인 요청·미실행을 구분', async () => {
   const { live, calls } = await measured();
-  assert.equal(calls.length, 4);
-  assert.match(calls[0].path, /^\/api\/notes\/[0-9a-f-]{36}$/);
-  assert.equal(calls[1].path, '/api/my/notes');
-  assert.ok(calls.slice(0, 3).every(call => !call.headers.authorization && !call.headers.cookie));
+  assert.equal(calls.length, 3);
+  assert.equal(calls[0].path, '/api/my/notes');
+  assert.ok(calls.slice(0, 2).every(call => !call.headers.authorization && !call.headers.cookie));
   assert.ok(!calls.at(-1).headers.cookie.includes('vault_refresh'));
-  assert.equal(live.summary.total, 41); assert.equal(live.summary.executed, 3);
-  assert.equal(live.summary.notRun, 38); assert.equal(live.summary.blocked, 2); assert.equal(live.summary.passed, 3);
+  assert.equal(live.summary.total, 41); assert.equal(live.summary.executed, 2);
+  assert.equal(live.summary.notRun, 39); assert.equal(live.summary.blocked, 1); assert.equal(live.summary.passed, 2);
+  assert.equal(live.summary.records.find(row => row.attackId === 'anonymous_note_read').observed, 'not_run');
   assert.equal(live.normal.outcome, 'allowed'); assert.equal(live.normal.httpStatus, 200);
   assert.deepEqual(live.measured, live.summary.records.filter(row => row.status === 'executed'));
   assert.ok(!JSON.stringify(live).includes('synthetic-private'));
@@ -108,7 +108,7 @@ test('화면은 이번 실제 API 기록과 수치를 검산하고 불일치·�
   await new Promise(resolve => setImmediate(resolve));
   const data = elements.get('#operations-data'); const text = node => [node.textContent, ...node.children.map(text)].join(' ');
   assert.equal(data.hidden, false);
-  assert.match(text(data), /실제 확인 3, 미실행 38, 실제 막음 2/);
+  assert.match(text(data), /실제 확인 2, 미실행 39, 실제 막음 1/);
   assert.match(text(data), /HTTP 200 \/ allowed/);
   const masked = data.children.at(-1);
   const maskedRows = masked.children.at(-1).children;

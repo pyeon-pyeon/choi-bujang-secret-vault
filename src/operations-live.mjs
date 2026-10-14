@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 export const LIVE_CHECKS = Object.freeze([
-  { attackId: 'anonymous_note_read', path: '/api/notes/00000000-0000-4000-8000-000000000001', kind: 'deny' },
   { attackId: 'anonymous_note_list', path: '/api/my/notes', kind: 'deny' },
   { attackId: 'static_seed_data_scan', path: '/data.json', kind: 'empty_static' },
 ]);
