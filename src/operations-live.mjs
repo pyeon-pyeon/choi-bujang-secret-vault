@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 export const LIVE_CHECKS = Object.freeze([
-  { attackId: 'anonymous_note_read', path: '/api/notes', kind: 'deny' },
+  { attackId: 'anonymous_note_read', path: '/api/notes/00000000-0000-4000-8000-000000000001', kind: 'deny' },
   { attackId: 'anonymous_note_list', path: '/api/my/notes', kind: 'deny' },
   { attackId: 'static_seed_data_scan', path: '/data.json', kind: 'empty_static' },
 ]);
@@ -91,5 +91,9 @@ export async function collectApiResults({ config, authHeaders = {}, fetcher = fe
     ? await sample({ attackId: 'normal_own_note_list', path: '/api/my/notes', kind: 'normal',
       expected: '서버가 승인한 로그인 계정의 본인 목록 HTTP 200' }, headers)
     : unrun({ attackId: 'normal_own_note_list', expected: '승인된 계정으로 별도 확인' });
-  return { summary: summarizeLiveResults(catalog, measured), normal, measured, catalogSource: catalog.sourceUrl };
+  const summary = summarizeLiveResults(catalog, measured);
+  // 화면 집계와 가린 기록은 같은 검증·정규화 결과를 사용합니다.
+  // 원래 측정 배열을 별도로 반환해 두 개의 결과 표현을 만들지 않습니다.
+  return { summary, normal, measured: summary.records.filter(row => row.status === 'executed'),
+    catalogSource: catalog.sourceUrl };
 }

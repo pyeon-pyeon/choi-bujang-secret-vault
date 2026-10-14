@@ -67,7 +67,7 @@ async function loadSummary() {
     });
     const masked = section('가린 서버 기록', '이 표의 결과는 이번 /api/operations 응답에서 읽었습니다. 본문·계정 ID·쿠키·토큰·키는 포함하지 않습니다.');
     const list = document.createElement('ul');
-    for (const row of executed) {
+    for (const row of [...executed, ...(data.apiResults.normal?.status === 'executed' ? [data.apiResults.normal] : [])]) {
       const item = document.createElement('li');
       item.textContent = `${row.attackId} / ${row.method} / URL SHA-256 ${row.urlSha256} / ${showRecord(row)}`;
       list.append(item);
