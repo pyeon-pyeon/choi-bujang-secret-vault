@@ -36,7 +36,7 @@ export function createStudentView() {
         line(parent,
           `기기: ${value(device?.label)}`
           + ` · ID: ${value(device?.id)}`
-          + ` · 상태: ${state}`
+          + ` · 상태: ${state} (${value(device?.status)})`
         );
       };
 
@@ -46,7 +46,7 @@ export function createStudentView() {
           : '확인 불가';
 
         line(parent,
-          `세션 ID: ${value(session?.id)} · 상태: ${state}`
+          `세션 ID: ${value(session?.id)} · 상태: ${state} (${value(session?.status)})`
         );
       };
 
