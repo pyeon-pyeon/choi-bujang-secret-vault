@@ -10,7 +10,7 @@
 
 | 항목 | 코드 기준 및 확인 범위 |
 |---|---|
-| Node.js | package.json engines 기준 24.19.0. 사용자 PC에서 v24.20.0 문법 검사 출력 확인. 다른 버전의 실행 호환성은 미확인 |
+| Node.js | package.json engines 기준 24.19.0. 사용자 PC v24.20.0에서 문법·기본 시작·재시작을 관찰. 명세 지원을 확대하지 않음. 이번 PC의 24.19.0 실행은 미확인 |
 | 앱 | alekov-client-starter 0.2.11 |
 | PowerShell | Windows PowerShell 실행 명령 사용. 실제 PowerShell 버전 번호는 미확인 |
 | Git | 커밋·푸시에 사용. 실제 버전 번호는 미확인 |
@@ -147,3 +147,7 @@ AI 점검·설명은 `/api/ai/check`, `/api/ai/explain`을 통해 로컬 서버�
 Git 최상위에서 git status --short, git diff --stat, git diff -- on-client/README.md on-client/docs/STUDENT_RUNBOOK.md로 확인하고 두 문서만 선택해 커밋합니다. 제출 해시는 커밋 후 git rev-parse HEAD로 읽으며 만들어 쓰지 않습니다. 비밀 파일은 추가하지 않습니다.
 
 21·22단계는 과제 화면에 저장소와 40자리 커밋을 직접 입력합니다. 비공개 원문이 필요하면 해당 단계의 공식 원문 전달 도구를 프로젝트 밖에 풀고 출력 폴더도 밖에 만듭니다. 정확한 student-source-cli.mjs 인자는 과제 화면의 안내를 따릅니다. 이 문서에서는 받지 않은 도구 명령을 추측하지 않습니다. 원문 전달과 AI 검토 통과는 별도이며 제출은 사용자가 확인해 직접 진행합니다.
+
+## 22단계 버전 안내 정정
+
+명세 기준 Node.js는 package.json의 24.19.0입니다. 24.20.0은 학생 PC에서 관찰한 버전이며 명세 지원 버전으로 추가하지 않습니다. 제공 도구가 허용하는 22~24는 실행 전 검사 범위일 뿐 검증된 지원 범위가 아닙니다. 학생 문서는 22~24 전체 지원을 주장하지 않습니다. 제출 커밋 0cdab87의 실행 기록과 미확인 범위는 [학생 릴리스 기록](STUDENT_RELEASE.md)에 분리했습니다.
